@@ -41,8 +41,8 @@ class CropPlot(Agent):
         neighbors = [i for i in self.model.grid.get_neighborhood(self.pos, self.moore,
                 False, radius=self.vision) if not self.is_occupied(i)]
         # Look for location with the highest potential productivity
-        max_prod = max([self.get_land(pos).suitability for pos in neighbors])
-        candidates = [pos for pos in neighbors if self.get_land(pos).suitability ==
+        max_prod = max([self.get_land(pos).potential for pos in neighbors])
+        candidates = [pos for pos in neighbors if self.get_land(pos).potential ==
                 max_prod]
         # Narrow down to the nearest ones
         min_dist = min([get_distance(self.pos, pos) for pos in candidates])
@@ -65,11 +65,14 @@ class Land(Agent):
         self.suitability = suitability
         self.steps_cult = steps_cult
         self.steps_fallow = steps_fallow
+        self.potential = self.suitability*self.steps_fallow
 
     def step(self):
         if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
             self.steps_cult = self.steps_cult + 1
             self.steps_fallow = 0
+            self.potential = self.suitability*self.steps_fallow
         else:
             self.steps_fallow = self.steps_fallow + 1
             self.steps_cult = 0
+            self.potential = self.suitability*self.steps_fallow
