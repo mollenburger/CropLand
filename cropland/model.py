@@ -36,7 +36,7 @@ class CropMove(Model):
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.datacollector = breedDataCollector(Land,model_reporters={"CropPlot":lambda m: m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"history": lambda a: a.steps_cult})
+        self.datacollector = breedDataCollector(Land,model_reporters={"CropPlot":lambda m: m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow})
 
         # Create land
         land_suitability = np.genfromtxt("cropland/suitability.txt")
@@ -79,16 +79,3 @@ class CropMove(Model):
             print('')
             print('Final number CropPlot Agent: ',
                   self.schedule.get_breed_count(CropPlot))
-
-crops = CropMove()
-crops.run_model()
-# crops.step()
-# sgm.step()
-#crops.grid.get_cell_list_contents([(2,3)])[0].cult_hist()
-# sgm.datacollector.get_model_vars_dataframe()
-
-crops.grid.get_cell_list_contents([(2,3)])[0].steps_cult
-#
-# crops.schedule.agents_by_breed[Land]
-
-crops.datacollector.get_agent_vars_dataframe()

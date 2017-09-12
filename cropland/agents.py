@@ -50,6 +50,7 @@ class CropPlot(Agent):
             pos) == min_dist]
         random.shuffle(final_candidates)
         self.model.grid.move_agent(self, final_candidates[0])
+        #can move to where someone else already was--staging
 
     def step(self):
         crop_land = self.get_land(self.pos)
@@ -59,14 +60,16 @@ class CropPlot(Agent):
 
 
 class Land(Agent):
-    def __init__(self, pos, model, suitability, steps_cult=0):
+    def __init__(self, pos, model, suitability, steps_cult=0, steps_fallow=0):
         super().__init__(pos, model)
         self.suitability = suitability
         self.steps_cult = steps_cult
-
+        self.steps_fallow = steps_fallow
 
     def step(self):
         if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
             self.steps_cult = self.steps_cult + 1
+            self.steps_fallow = 0
         else:
-            self.steps_cult = self.steps_cult - 1
+            self.steps_fallow = self.steps_fallow + 1
+            self.steps_cult = 0

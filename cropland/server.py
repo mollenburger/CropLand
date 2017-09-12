@@ -36,7 +36,7 @@ def CropAgents_portrayal(agent):
 
 
 canvas_element = CanvasGrid(CropAgents_portrayal, 50, 50, 500, 500)
-chart_element = ChartModule([{"Label": "CropPlot", "Color": "#AA0000"}])
+chart_element = ChartModule([{"Label": "CropPlot", "Color": "#AA0000"}],)
 
 server = ModularServer(CropMove, [canvas_element, chart_element],
                        "Crop move")
