@@ -46,7 +46,10 @@ class CropMove(Model):
             self.grid.place_agent(land, (x, y))
             self.schedule.add(land)
 
-        # Create CropPlot agent:
+        #Create Owner agents:
+
+
+        # Create CropPlot agents:
         for i in range(self.initial_population):
             x = random.randrange(self.width)
             y = random.randrange(self.height)

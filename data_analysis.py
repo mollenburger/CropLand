@@ -35,7 +35,7 @@ endcult = endst.pivot(index='X',columns='Y',values='cultivated')
 f, ax = plt.subplots(figsize=(10,10))
 
 # Generate a custom diverging colormap
-cmap = sns.diverging_palette(220, 10, as_cmap=True)
+#cmap = sns.diverging_palette(220, 10, as_cmap=True)
 
 # Draw the heatmap with the mask and correct aspect ratio
 sns.heatmap(endcult,
