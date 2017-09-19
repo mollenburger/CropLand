@@ -43,7 +43,7 @@ class CropPlot(Agent):
 
     def move(self):
         # Get neighborhood within owner's vision
-        owner = get_owner(self)
+        owner = self.get_owner()
         neighbors = [i for i in self.model.grid.get_neighborhood(self.pos, self.moore,
                 False, radius=owner.vision) if not self.is_occupied(i)]
         # Look for location with the highest potential productivity
@@ -81,22 +81,24 @@ class Owner(Agent):
         newplot.move()
         self.model.schedule.add(newplot)
 
-    def get_plots(self):
-        allcrops = self.model.schedule.agents_by_breed[CropPlot]
-        for agent in allcrops:
-            if agent.owner == self.owner:
-                self.plots.append(agent)
+    # def get_plots(self):
+    #     allcrops = self.model.schedule.agents_by_breed[CropPlot]
+    #     for agent in allcrops:
+    #         if agent.owner == self.owner:
+    #             self.plots.append(agent)
 
-    def get_wealth(self):
-        plots = get_plots(self)
-        plotwealth = []
-        for agent in plots:
-            plotwealth.append(agent.harvest)
-        self.wealth = sum(plotwealth) #can adapt later
+    # def get_wealth(self):
+    #     plotwealth = []
+    #     for agent in self.plots:
+    #         plotwealth.append(agent.harvest)
+    #     self.wealth = sum(plotwealth) #can adapt later
 
 
     def step(self):
-        self.wealth = self.get_wealth()
+        plotwealth = []
+        for agent in self.plots:
+            plotwealth.append(agent.harvest)
+        self.wealth = sum(plotwealth) #can adapt later
         if self.wealth > self.threshold:
             self.expand()
             # expand

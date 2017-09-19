@@ -9,7 +9,7 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land
+from cropland.agents import CropPlot, Land, Owner
 from cropland.schedule import RandomActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 
@@ -38,8 +38,8 @@ class CropMove(Model):
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.Landcollector = breedDataCollector(Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow})
-        self.CropPlotcollector = breedDataCollector(CropPlot, agent_reporters = {"harvest":lambda a:a.harvest})
+        self.Landcollector = breedDataCollector(Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
+        self.CropPlotcollector = breedDataCollector(CropPlot, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
         self.Ownercollector = breedDataCollector(Owner, agent_reporters = {"status":lambda a: a.statusreport()})
 
 
@@ -57,8 +57,8 @@ class CropMove(Model):
             x = random.randrange(self.width)
             y = random.randrange(self.height)
             owner = i
-            nplots = config[i,1]
-            wealth = config[i,2]
+            nplots = self.config[i,1]
+            wealth = self.config[i,2]
             vision = 8
             threshold = 500
             owneragent = Owner((x,y),self, owner, vision, wealth, threshold)
@@ -69,11 +69,11 @@ class CropMove(Model):
                 # x = random.randrange(owneragent.pos[0]-owneragent.vision, owneragent.pos[0]+owneragent.vision)
                 # y = random.randrange(owneragent.pos[1]-owneragent.vision, owneragent.pos[1]+owneragent.vision) #or place on owner then move
                 plotowner = owneragent.owner
-                harvest = 0
+                harvest = 1
                 croppl = CropPlot(owneragent.pos,self,False,plotowner,harvest)
                 self.grid.place_agent(croppl,(x,y))
-                croppl.move() #can place off-grid
-                self.schedule.add(croppl) 
+                croppl.move() #can place off-grid?
+                self.schedule.add(croppl)
 
 
         self.running = True
@@ -83,20 +83,18 @@ class CropMove(Model):
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
         self.Ownercollector.collect(self)
-        if self.verbose:
-            print([self.schedule.time,
-                   self.schedule.get_breed_count(CropPlot)])
+        # if self.verbose:
+        #     print([self.schedule.time,
+        #            self.schedule.get_breed_count(CropPlot)])
 
     def run_model(self, step_count=200):
 
-        if self.verbose:
-            print('Initial number CropPlot Agent: ',
-                  self.schedule.get_breed_count(CropPlot))
+        print('Initial number CropPlot Agent: ',
+              self.schedule.get_breed_count(CropPlot))
 
         for i in range(step_count):
             self.step()
 
-        if self.verbose:
-            print('')
-            print('Final number CropPlot Agent: ',
-                  self.schedule.get_breed_count(CropPlot))
+        print('')
+        print('Final number CropPlot Agent: ',
+              self.schedule.get_breed_count(CropPlot))

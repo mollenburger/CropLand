@@ -7,6 +7,31 @@ from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 
+from cropland.agents import CropPlot, Land, Owner
+from cropland.schedule import RandomActivationByBreed
+from cropland.subDataCollector import breedDataCollector
+from cropland.model import CropMove
+
+crops = CropMove(config_file='owner_init.csv', height=50, width=50)
+crops.step()
+crops.run_model()
+
+exown = crops.schedule.agents_by_breed[Owner][0]
+exown.plots
+plotwealth = []
+for agent in exown.plots:
+    plotwealth.append(agent.harvest)
+plotwealth
+sum(plotwealth)
+
+exown.wealth=sum(plotwealth)
+exown.wealth
+
+excp = crops.schedule.agents_by_breed[CropPlot][0]
+excp.get_land(excp.pos).potential
+
+
+
 
 config = np.genfromtxt('owner_init.csv',dtype=int,delimiter=',',skip_header=1)
 config[:,0]

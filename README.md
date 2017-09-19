@@ -67,4 +67,4 @@ Owner: update wealth from CropPlots, expand
 Land: update steps_cult and potential (so new plots get steps_cult=1)
 CropPlot: calculate harvest, move
 
-collect all
+collect all datacollectors
