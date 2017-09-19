@@ -18,25 +18,31 @@ class CropMove(Model):
     CropPlots move based on time cultivated
     '''
 
-    verbose = True  # Print-monitoring
+    #verbose = True  # Print-monitoring
 
-    def __init__(self, height=50, width=50,
-                 initial_population=100):
+    def __init__(self, config_file, height=50, width=50):
         '''
         Create a new model with the given parameters.
 
         Args:
+        height, width: dimensions of area
+        config_file: path to initial config csv (must have 1 header row)
 
         '''
 
         # Set parameters
         self.height = height
         self.width = width
-        self.initial_population = initial_population
+        self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
+        self.nowners = self.config.shape[0]
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.datacollector = breedDataCollector(Land,model_reporters={"CropPlot":lambda m: m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow})
+        self.Landcollector = breedDataCollector(Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow})
+        self.CropPlotcollector = breedDataCollector(CropPlot, agent_reporters = {"harvest":lambda a:a.harvest})
+        self.Ownercollector = breedDataCollector(Owner, agent_reporters = {"status":lambda a: a.statusreport()})
+
+
 
         # Create land
         land_suitability = np.genfromtxt("cropland/suitability.txt")
@@ -47,27 +53,39 @@ class CropMove(Model):
             self.schedule.add(land)
 
         #Create Owner agents:
-
-
-        # Create CropPlot agents:
-        for i in range(self.initial_population):
+        for i in range(self.nowners):
             x = random.randrange(self.width)
             y = random.randrange(self.height)
-            owner = random.randrange(6, 25)
-            harvest = random.randrange(2, 4)
-            vision = 5
-            croppl = CropPlot((x, y), self, False, owner, harvest, vision)
-            self.grid.place_agent(croppl, (x, y))
-            self.schedule.add(croppl)
+            owner = i
+            nplots = config[i,1]
+            wealth = config[i,2]
+            vision = 8
+            threshold = 500
+            owneragent = Owner((x,y),self, owner, vision, wealth, threshold)
+            self.grid.place_agent(owneragent,(x,y))
+            self.schedule.add(owneragent)
+            for j in range(nplots):
+            #Create CropPlots for each owner:
+                # x = random.randrange(owneragent.pos[0]-owneragent.vision, owneragent.pos[0]+owneragent.vision)
+                # y = random.randrange(owneragent.pos[1]-owneragent.vision, owneragent.pos[1]+owneragent.vision) #or place on owner then move
+                plotowner = owneragent.owner
+                harvest = 0
+                croppl = CropPlot(owneragent.pos,self,False,plotowner,harvest)
+                self.grid.place_agent(croppl,(x,y))
+                croppl.move() #can place off-grid
+                self.schedule.add(croppl) 
+
 
         self.running = True
 
     def step(self):
         self.schedule.step()
-        self.datacollector.collect(self)
-        # if self.verbose:
-        #     print([self.schedule.time,
-        #            self.schedule.get_breed_count(CropPlot)])
+        self.Landcollector.collect(self)
+        self.CropPlotcollector.collect(self)
+        self.Ownercollector.collect(self)
+        if self.verbose:
+            print([self.schedule.time,
+                   self.schedule.get_breed_count(CropPlot)])
 
     def run_model(self, step_count=200):
 

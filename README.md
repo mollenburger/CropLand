@@ -52,8 +52,19 @@ Methods
 
 **CropMove Model**
 *init*
+  init:
+  read config file
+    get total number of owners
   place Land according to suitability
   place Owners (random)
-  place CropPlots (random w/in model.owner.vision from owner pos)
+  place CropPlots
+    random w/in model.owner.vision from owner pos, number found in config
+    (by max suitability??)
+
 
 *step*
+Owner: update wealth from CropPlots, expand
+Land: update steps_cult and potential (so new plots get steps_cult=1)
+CropPlot: calculate harvest, move
+
+collect all

@@ -18,6 +18,10 @@ from cropland.model import CropMove
 crops = CropMove(height=5, width=5, initial_population=10)
 crops.run_model(step_count=10)
 
+crops.schedule.agents[26].pos[0]
+
+
+
 landhist = crops.datacollector.get_agent_vars_dataframe()
 
 landhist.head()

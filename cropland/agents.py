@@ -61,39 +61,48 @@ class CropPlot(Agent):
 
     def step(self):
         crop_land = self.get_land(self.pos)
+        self.harvest = crop_land.potential #can add add'l factors (before or after move??)
         if crop_land.steps_cult > 2:
             self.move()
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, landsize, vision, wealth, threshold):
+    def __init__(self,pos,model, owner, vision, wealth, threshold):
         super().__init__(pos, model)
         self.owner=owner
         self.vision = vision
         self.wealth = wealth
         self.threshold = threshold
-        self.crops = []
+        self.plots = []
 
     def expand(self):
-        newpos = /?????/
-        newplot = CropPlot(newpos, self.model, moore=True, owner=self.owner, harvest=0)
-        self.model.grid.place_agent(newplot,newpos)
+        newplot = CropPlot(self.pos, self.model, moore=True, owner=self.owner, harvest=0)
+        self.plots.append(newplot)
+        self.model.grid.place_agent(newplot,(self.pos)) #
+        newplot.move()
         self.model.schedule.add(newplot)
 
-    def get_crops(self):
+    def get_plots(self):
         allcrops = self.model.schedule.agents_by_breed[CropPlot]
         for agent in allcrops:
             if agent.owner == self.owner:
-                self.crops.append(agent)
+                self.plots.append(agent)
 
     def get_wealth(self):
-        plots = get_crops(self)
-        plotwealth = agent.wealth for agent in plots
-        self.wealth = sum(plotwealth)
+        plots = get_plots(self)
+        plotwealth = []
+        for agent in plots:
+            plotwealth.append(agent.harvest)
+        self.wealth = sum(plotwealth) #can adapt later
+
 
     def step(self):
-        get_wealth
+        self.wealth = self.get_wealth()
         if self.wealth > self.threshold:
-            expand
+            self.expand()
+            # expand
+
+    def statusreport(self):
+        return [self.owner, len(self.plots), self.wealth]
 
 
 class Land(Agent):
