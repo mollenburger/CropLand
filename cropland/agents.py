@@ -75,13 +75,18 @@ class Owner(Agent):
         self.plots = []
 
     def expand(self):
-        newplot = CropPlot(self.pos, self.model, moore=True, owner=self.owner, harvest=0)
-        self.plots.append(newplot)
-        self.model.grid.place_agent(newplot,(self.pos)) #
+        newplot = CropPlot(self.pos, self.model, moore=True, owner=self.owner, harvest=0)#
+        self.model.grid.place_agent(newplot,(newplot.pos))
         newplot.move()
         self.model.schedule.add(newplot)
+        self.plots.append(newplot)
 
+
+    #def move(self):
+
+    #
     # def get_plots(self):
+    #     self.plots = []
     #     allcrops = self.model.schedule.agents_by_breed[CropPlot]
     #     for agent in allcrops:
     #         if agent.owner == self.owner:
@@ -91,7 +96,7 @@ class Owner(Agent):
     #     plotwealth = []
     #     for agent in self.plots:
     #         plotwealth.append(agent.harvest)
-    #     self.wealth = sum(plotwealth) #can adapt later
+    #     self.wealth = sum(plotwealth)
 
 
     def step(self):

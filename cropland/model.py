@@ -38,9 +38,9 @@ class CropMove(Model):
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.Landcollector = breedDataCollector(Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
-        self.CropPlotcollector = breedDataCollector(CropPlot, model_reporters={"Total plots":lambda m:m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
-        self.Ownercollector = breedDataCollector(Owner, agent_reporters = {"status":lambda a: a.statusreport()})
+        self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
+        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
+        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"status":lambda a: a.statusreport()})
 
 
 
@@ -89,12 +89,12 @@ class CropMove(Model):
 
     def run_model(self, step_count=200):
 
-        print('Initial number CropPlot Agent: ',
+        print('Initial number CropPlots: ',
               self.schedule.get_breed_count(CropPlot))
 
         for i in range(step_count):
             self.step()
 
         print('')
-        print('Final number CropPlot Agent: ',
+        print('Final number CropPlots: ',
               self.schedule.get_breed_count(CropPlot))

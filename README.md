@@ -1,6 +1,8 @@
 # CropLand
 ABM of land use change built with Mesa
 
+(extremely work-in-progress)
+
 **Agents**
 
 *Land*
@@ -34,21 +36,22 @@ Methods:
 
 *Owner*
 Attributes
-  plots_owned
+  plots
   wealth
   vision
+  threshold
 
 Methods
-  get_plots
-    return list of owned CropPlot agents
-  get_wealth
-    return sum of harvests (with multiplier?)
   expand
-    add 1 or more CropPlots with same owner
+    add 1 (todo: or more) CropPlots with same owner
+  step
+    calculate total wealth, expand if wealth > threshold
 
 **Schedule**
   (add)
   (remove)
+  (step by breed)
+  (todo: random -> in order)
 
 **CropMove Model**
 *init*
