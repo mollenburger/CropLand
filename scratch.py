@@ -13,11 +13,26 @@ from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
 
 crops = CropMove(config_file='owner_init.csv', height=50, width=50)
-crops.step()
-crops.run_model()
+#crops.step()
+crops.run_model(step_count=40)
 
-exown = crops.schedule.agents_by_breed[Owner][0]
-exown.plots
+exown = crops.schedule.agents_by_breed[Owner][5]
+
+exown.plots[1].owner
+
+crops.schedule.get_breed_count(CropPlot)
+crops.CropPlotcollector.get_model_vars_dataframe()
+
+plothar = crops.schedule.agents_by_breed[CropPlot]
+len(plothar)
+[agent.harvest for agent in plothar]
+
+
+[agent.get_land(agent.pos).steps_cult for agent in plothar]
+
+
+
+exown.plots[2].harvest
 plotwealth = []
 for agent in exown.plots:
     plotwealth.append(agent.harvest)

@@ -20,7 +20,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file, height=50, width=50):
+    def __init__(self, config_file='owner_init.csv', height=50, width=50):
         '''
         Create a new model with the given parameters.
 
@@ -39,7 +39,7 @@ class CropMove(Model):
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
-        self.CropPlotcollector = breedDataCollector(CropPlot, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
+        self.CropPlotcollector = breedDataCollector(CropPlot, model_reporters={"Total plots":lambda m:m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
         self.Ownercollector = breedDataCollector(Owner, agent_reporters = {"status":lambda a: a.statusreport()})
 
 
@@ -60,17 +60,17 @@ class CropMove(Model):
             nplots = self.config[i,1]
             wealth = self.config[i,2]
             vision = 8
-            threshold = 500
+            threshold = 3
             owneragent = Owner((x,y),self, owner, vision, wealth, threshold)
             self.grid.place_agent(owneragent,(x,y))
             self.schedule.add(owneragent)
             for j in range(nplots):
             #Create CropPlots for each owner:
-                # x = random.randrange(owneragent.pos[0]-owneragent.vision, owneragent.pos[0]+owneragent.vision)
-                # y = random.randrange(owneragent.pos[1]-owneragent.vision, owneragent.pos[1]+owneragent.vision) #or place on owner then move
+                # place on owner pos then move
                 plotowner = owneragent.owner
                 harvest = 1
                 croppl = CropPlot(owneragent.pos,self,False,plotowner,harvest)
+                owneragent.plots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
                 croppl.move() #can place off-grid?
                 self.schedule.add(croppl)

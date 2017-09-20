@@ -18,12 +18,17 @@ from cropland.model import CropMove
 crops = CropMove(config_file='owner_init.csv', height=50, width=50)
 crops.run_model(step_count=10)
 
-crops.schedule.agents_by_breed[CropPlot]
+crops.schedule.agents_by_breed[]
 
 
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
+cptot = crops.CropPlotcollector.get_model_vars_dataframe()
+cptot
+cphist.ix[0]
+
+
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
 cphist.tail()
 landhist.head()

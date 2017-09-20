@@ -119,7 +119,7 @@ class Land(Agent):
         if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
             self.steps_cult = self.steps_cult + 1
             self.steps_fallow = 0
-            self.potential = self.suitability*self.steps_fallow
+            self.potential = self.suitability #add reduction based on steps_cult
         else:
             self.steps_fallow = self.steps_fallow + 1
             self.steps_cult = 0
