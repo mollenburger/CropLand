@@ -1,20 +1,22 @@
 # CropLand
-ABM of land use change built with Mesa  
+ABM of land use change built with [Mesa](https://github.com/projectmesa/mesa)
 
 # Summary  
-There are three types of agents: Land, CropPlot, and Owner. Land contains location-specific properties and does not move (equivalent to NetLogo "patch"). Each CropPlot agent represents a 1-ha field, and is linked to an Owner agent, who may own several CropPlots.  
+There are three types of agents: Land, CropPlot, and Owner. Land contains
+location-specific properties and does not move (equivalent to NetLogo "patch").
+Each CropPlot agent represents a 1-ha field, and is linked to an Owner agent,
+who may own several CropPlots.  
 
 The model is initialized using a config file (.csv) that lists owners, the
 number of CropPlots they own, and their starting wealth (zero for the moment).
-Land agents are placed based on a text file of suitability scores. Owners are
-placed at random, and their CropPlots are placed in an area surrounding the
+Land agents are initialized based on a text file of suitability scores. Owners
+are placed at random, and their CropPlots are placed in an area surrounding the
 owner. At each model step, the harvest on each CropPlot is calculated based on
 Land attributes (suitability, number of steps cultivated or fallow). These
 harvests are summed for each owner to calculate that owner's wealth. When the
 Owner's wealth exceeds a specified threshold, a new CropPlot is created for that
-Owner. CropPlots move every 3 model steps, to the nearest high-suitability
-unoccupied Land location. The Owner's location is updated to be at the centroid
-of its CropPlots.  
+Owner (cropland expansion). CropPlots move every 3 model steps, to the nearest high-suitability unoccupied Land location. The Owner's location is updated to be at the centroid of its owned CropPlots.  
+
 
 # Model components  
 **Agents**  
