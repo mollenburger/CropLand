@@ -30,8 +30,7 @@ class breedDataCollector(DataCollector):
             for var, reporter in self.agent_reporters.items():
                 agent_records = []
                 #add an if clause to only append to agent records if our agent meets a certain condition
-                for agent in model.schedule.agents_by_breed[self.breed]:
-                    agent_records.append((agent.unique_id, reporter(agent)))
+                for agent in model.schedule.agents:
+                    if type(agent) == self.breed :
+                        agent_records.append((agent.pos, reporter(agent)))
                 self.agent_vars[var].append(agent_records)
-
-## When I define the datacollector for my model, I use MyDataCollector rather than the default DataCollector

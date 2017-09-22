@@ -9,7 +9,7 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land
+from cropland.agents import CropPlot, Land, Owner
 from cropland.schedule import RandomActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 
@@ -18,25 +18,31 @@ class CropMove(Model):
     CropPlots move based on time cultivated
     '''
 
-    verbose = True  # Print-monitoring
+    #verbose = True  # Print-monitoring
 
-    def __init__(self, height=50, width=50,
-                 initial_population=100):
+    def __init__(self, config_file='owner_init.csv', height=50, width=50):
         '''
         Create a new model with the given parameters.
 
         Args:
+        height, width: dimensions of area
+        config_file: path to initial config csv (must have 1 header row)
 
         '''
 
         # Set parameters
         self.height = height
         self.width = width
-        self.initial_population = initial_population
+        self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
+        self.nowners = self.config.shape[0]
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.datacollector = breedDataCollector(Land,model_reporters={"CropPlot":lambda m: m.schedule.get_breed_count(CropPlot)}, agent_reporters = {"history": lambda a: a.steps_cult})
+        self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
+        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"harvest":lambda a:a.harvest, "owner":lambda a:a.owner})
+        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"status":lambda a: a.statusreport()})
+
+
 
         # Create land
         land_suitability = np.genfromtxt("cropland/suitability.txt")
@@ -46,49 +52,49 @@ class CropMove(Model):
             self.grid.place_agent(land, (x, y))
             self.schedule.add(land)
 
-        # Create CropPlot agent:
-        for i in range(self.initial_population):
+        #Create Owner agents:
+        for i in range(self.nowners):
             x = random.randrange(self.width)
             y = random.randrange(self.height)
-            owner = random.randrange(6, 25)
-            harvest = random.randrange(2, 4)
-            vision = 5
-            croppl = CropPlot((x, y), self, False, owner, harvest, vision)
-            self.grid.place_agent(croppl, (x, y))
-            self.schedule.add(croppl)
+            owner = i
+            nplots = self.config[i,1]
+            wealth = self.config[i,2]
+            vision = 8
+            threshold = 3
+            owneragent = Owner((x,y),self, owner, vision, wealth, threshold)
+            self.grid.place_agent(owneragent,(x,y))
+            self.schedule.add(owneragent)
+            for j in range(nplots):
+            #Create CropPlots for each owner:
+                # place on owner pos then move
+                plotowner = owneragent.owner
+                harvest = 1
+                croppl = CropPlot(owneragent.pos,self,False,plotowner,harvest)
+                owneragent.plots.append(croppl)
+                self.grid.place_agent(croppl,(x,y))
+                croppl.move() #can place off-grid?
+                self.schedule.add(croppl)
+
 
         self.running = True
 
     def step(self):
         self.schedule.step()
-        self.datacollector.collect(self)
+        self.Landcollector.collect(self)
+        self.CropPlotcollector.collect(self)
+        self.Ownercollector.collect(self)
         # if self.verbose:
         #     print([self.schedule.time,
         #            self.schedule.get_breed_count(CropPlot)])
 
     def run_model(self, step_count=200):
 
-        if self.verbose:
-            print('Initial number CropPlot Agent: ',
-                  self.schedule.get_breed_count(CropPlot))
+        print('Initial number CropPlots: ',
+              self.schedule.get_breed_count(CropPlot))
 
         for i in range(step_count):
             self.step()
 
-        if self.verbose:
-            print('')
-            print('Final number CropPlot Agent: ',
-                  self.schedule.get_breed_count(CropPlot))
-
-crops = CropMove()
-crops.run_model()
-# crops.step()
-# sgm.step()
-#crops.grid.get_cell_list_contents([(2,3)])[0].cult_hist()
-# sgm.datacollector.get_model_vars_dataframe()
-
-crops.grid.get_cell_list_contents([(2,3)])[0].steps_cult
-#
-# crops.schedule.agents_by_breed[Land]
-
-crops.datacollector.get_agent_vars_dataframe()
+        print('')
+        print('Final number CropPlots: ',
+              self.schedule.get_breed_count(CropPlot))

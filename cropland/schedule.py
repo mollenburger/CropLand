@@ -63,6 +63,7 @@ class RandomActivationByBreed(RandomActivation):
     def step_breed(self, breed):
         '''
         Shuffle order and run all agents of a given breed.
+        **how to do this by owner??**
 
         Args:
             breed: Class object of the breed to run.
