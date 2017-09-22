@@ -14,9 +14,19 @@ from cropland.model import CropMove
 
 crops = CropMove(config_file='owner_init.csv', height=50, width=50)
 #crops.step()
-crops.run_model(step_count=40)
+crops.run_model(step_count=10)
+
 
 exown = crops.schedule.agents_by_breed[Owner][5]
+
+plotloc = [agent.pos for agent in exown.plots]
+plotloc
+plots_x,plots_y = zip (*[agent.pos for agent in exown.plots])
+
+plots_x
+plots_y
+np.mean(plots_x)
+
 
 exown.plots[1].owner
 

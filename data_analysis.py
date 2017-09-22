@@ -18,20 +18,11 @@ from cropland.model import CropMove
 crops = CropMove(config_file='owner_init.csv', height=50, width=50)
 crops.run_model(step_count=10)
 
-crops.schedule.agents_by_breed[]
-
-
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
-cptot = crops.CropPlotcollector.get_model_vars_dataframe()
-cptot
-cphist.ix[0]
-
-
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
-cphist.tail()
-landhist.head()
+
 
 landhist.reset_index(inplace=True)
 landhist['X'],landhist['Y'] = zip (*landhist['AgentID'])
@@ -50,7 +41,6 @@ cphist['X'],cphist['Y'] = zip (*cphist['AgentID'])
 cpstep = pd.DataFrame(cphist[["Step","X","Y","harvest"]]).set_index("Step")
 cpstep.tail()
 endcp = cpstep.ix[9].pivot(index='X',columns='Y',values='harvest')
-cpstep.ix[9]
 
 # Set up the matplotlib figure
 f, ax = plt.subplots(figsize=(10,10))

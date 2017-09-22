@@ -1,5 +1,6 @@
 import random
 import math
+import numpy as np
 
 from mesa import Agent
 
@@ -82,15 +83,17 @@ class Owner(Agent):
         self.plots.append(newplot)
 
 
-    #def move(self):
+    def move(self):
+        plots_x,plots_y = zip (*[agent.pos for agent in self.plots])
+        self.model.grid.move_agent(self,(int(round(np.mean(plots_x))),int(round(np.mean(plots_y)))))
 
-    #
-    # def get_plots(self):
-    #     self.plots = []
-    #     allcrops = self.model.schedule.agents_by_breed[CropPlot]
-    #     for agent in allcrops:
-    #         if agent.owner == self.owner:
-    #             self.plots.append(agent)
+
+    def get_plots(self):
+        self.plots = []
+        allcrops = self.model.schedule.agents_by_breed[CropPlot]
+        for agent in allcrops:
+            if agent.owner == self.owner:
+                self.plots.append(agent)
 
     # def get_wealth(self):
     #     plotwealth = []
@@ -100,6 +103,7 @@ class Owner(Agent):
 
 
     def step(self):
+        self.move()
         plotwealth = []
         for agent in self.plots:
             plotwealth.append(agent.harvest)
@@ -128,4 +132,4 @@ class Land(Agent):
         else:
             self.steps_fallow = self.steps_fallow + 1
             self.steps_cult = 0
-            self.potential = self.suitability*self.steps_fallow
+            self.potential = self.suitability+self.steps_fallow

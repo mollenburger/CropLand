@@ -10,10 +10,10 @@ color_dic = {10: "Aqua",
                 7: 'Navy',
                 6: 'Maroon',
                 5: "Red",
-                4: "#005C00",
-                3: "#008300",
-                2: "#00AA00",
-                1: "#Gray"}
+                4: "Lime",
+                3: "Teal",
+                2: "Olive",
+                1: "Gray"}
 
 
 def CropAgents_portrayal(agent):
@@ -23,8 +23,6 @@ def CropAgents_portrayal(agent):
     portrayal = {}
 
     if type(agent) is Owner:
-        portrayal["Shape"] = "circle"
-        portrayal["Filled"] = "false"
         portrayal["Color"] = "#000000"
         portrayal["r"] = 1
         portrayal["Layer"] = 1
