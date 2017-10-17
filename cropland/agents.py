@@ -1,6 +1,7 @@
 import random
 import math
 import numpy as np
+import operator
 
 from mesa import Agent
 
@@ -128,7 +129,12 @@ class Owner(Agent):
                 #what about multiples?
 
     def manage(self):
-        self.plots
+        plots=[(agent.plID,agent.harvest) for agent in self.plots]
+        plots.sort(key=operator.itemgetter(1))
+        #plots sorted by harvest
+        #change first N to plID,'hi'; rest to plID,'lo'
+        #covert to dict
+
         #returns self.mgt = {'plID':'mgt',...}
 
 

@@ -1,3 +1,29 @@
+from itertools import cycle, islice, dropwhile
+rot = ['C','M','G']
+rotation = cycle(crops)
+next(rotation)
+thiselem = crops[0]
+nextelem = crops[(2+2)%len(crops)]
+nextelem
+crops.index('C')
+
+rot[(rot.index('M')+1)%len(rot)]
+
+yld = {('C','lo'):234, ('C','hi'):333}
+yld[('C','lo')]
+
+ylds = {'yield':{('C','lo'):234, ('C','hi'):333},'price':{('C','lo'):2, ('C','hi'):3}}
+
+
+ylds1 = {('C','lo'):{'yield':234,'price':1}}
+ylds1[('C','lo')]['price']
+
+
+ylds['price'][('C','lo')]
+
+
+zip()
+
 import random
 import numpy as np
 import pandas as pd
@@ -18,6 +44,13 @@ crops.run_model(step_count=10)
 
 
 exown = crops.schedule.agents_by_breed[Owner][5]
+listharvests = []
+listharvests = [(agent.pos,agent.harvest) for agent in exown.plots]
+listharvests
+import operator
+listharvests.sort(key=operator.itemgetter(1))
+listharvests
+dict(listharvests)
 
 plotloc = [agent.pos for agent in exown.plots]
 plotloc
