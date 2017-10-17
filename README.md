@@ -1,11 +1,11 @@
 # CropLand
 ABM of land use change built with [Mesa](https://github.com/projectmesa/mesa)
 
-# Summary  
+# Summary
 There are three types of agents: Land, CropPlot, and Owner. Land contains
 location-specific properties and does not move (equivalent to NetLogo "patch").
 Each CropPlot agent represents a 1-ha field, and is linked to an Owner agent,
-who may own several CropPlots.  
+who may own several CropPlots.
 
 The model is initialized using a config file (.csv) that lists owners, the
 number of CropPlots they own, and their starting wealth (zero for the moment).
@@ -15,11 +15,11 @@ owner. At each model step, the harvest on each CropPlot is calculated based on
 Land attributes (suitability, number of steps cultivated or fallow). These
 harvests are summed for each owner to calculate that owner's wealth. When the
 Owner's wealth exceeds a specified threshold, a new CropPlot is created for that
-Owner (cropland expansion). CropPlots move every 3 model steps, to the nearest high-suitability unoccupied Land location. The Owner's location is updated to be at the centroid of its owned CropPlots.  
+Owner (cropland expansion). CropPlots move every 3 model steps, to the nearest high-suitability unoccupied Land location. The Owner's location is updated to be at the centroid of its owned CropPlots.
 
 
-# Model components  
-**Agents**  
+# Model components
+**Agents**
 
 *Land*
 - Attributes:
@@ -32,12 +32,12 @@ Owner (cropland expansion). CropPlots move every 3 model steps, to the nearest h
   - potential
     - A function of suitability and steps_cult/steps_fallow. Right now either suitability (if cultivated) or suitability+steps_fallow if fallow--to be updated
 
-Methods:  
+Methods:
   - step
     - update steps_cult, steps_fallow, potential
 
-*Owner*  
-Attributes:  
+*Owner*
+Attributes:
   - owner
     - integer identifier of the Owner (for use by associated CropPlot agents)
   - plots
@@ -56,14 +56,14 @@ Methods:
     - Calculate total wealth,
     - Expand if wealth > threshold
 
-*CropPlot*  
-Attributes:  
+*CropPlot*
+Attributes:
   - owner
     - integer corresponding to the Owner agent associated with this plot
   - harvest
     - for now, the potential of the Land agent at the same grid space. Will be a function of potential and owner (?)
 
-Methods:  
+Methods:
   - Helper Methods:
     - get_land
       - returns Land agent on same grid space
@@ -83,8 +83,8 @@ Methods:
     - if this land has been cultivated for more than 3 consecutive steps, move
 
 
-**CropMove Model**  
-*init*  
+**CropMove Model**
+*init*
   - read config file
     - get total number of owners
   - place Land according to suitability
@@ -94,7 +94,7 @@ Methods:
     - (by max suitability??)
 
 
-*step*  
+*step*
 - Owner: update wealth from CropPlots, expand
 - Land: update steps_cult and potential (so new plots get steps_cult=1)
 - CropPlot: calculate harvest, move
@@ -114,47 +114,51 @@ Methods:
 
 
 **breedDataCollector**
-(Contains rules for data output)  
+(Contains rules for data output)
 Attributes:
   - breed
     - what type of agent should data be collected for?
   - {agent_reporters}
     - dict of names and agent-level attributes to report
   - {model_reporters}
-    - dict of names and model-level attributes to report  
+    - dict of names and model-level attributes to report
 
-Methods:  
+Methods:
   - collect
     - collect all data corresponding to model_reporters and agent_reporters of the specified type (Owner, CropPlot, Land)
 
 # TODO
-- wealth carry-over between steps  
+- wealth carry-over between steps
     What percentage of total should carry over?
+      simple rule convert total wealth -> food needed for the family + money
+      food doesnt carry over, money based on costs/family expenses and what's left carries over. Depends on household size (ARBES data)--input costs influence harvest amounts--based on paper 2 scenarios... shouldn't be a lot of carry-over
 
-- variable expansion rate  
-    How many CropPlots (ha) can an Owner expand in a given step?
+- variable expansion rate
+    How many CropPlots (ha) can an Owner expand in a given step? tricky because the work is done in the dry season--connected to hh size?
 
-- teams/tractors component  
+- teams/tractors component
     "mechanization level" as Owner attribute
     expansion rate/initial number of CropPlot agents to be determined by mechanization level
 
-- penalty on move/expand  
-    "cost" associated with clearing new land--as monetary cost? labor limit?
+- penalty on move/expand
+    "cost" associated with clearing new land--as monetary cost? labor limit? [cost for using draft animals] no more than 2-3 ha move/expand per turn
 
-- explicit labor limitations  
+- explicit labor limitations
     "household size" as Owner attribute limiting (along with mechanization level) the expansion rate/max total land size
 
 - move based on declining land potential instead of set number of steps
+  - move least productive plots each step
 
 - implement tree planting
 
 
 # Calibration
 
-- land suitability:  
+- land suitability:
     based on Landsat classification, include "bonus" for nearer to village?
+      keep suitability as biophysical measure, have village proximity as an add-on/factor -> 2 components to suitability: biophysical + socio-economic based on distance/mgt/etc (suitability+feasbility)
 
 - fallowing/cultivation impacts on land potential  
     Should vary spatially, owner-level differences?
 
-- suitability - potential - harvest - wealth relationships in general    
+- suitability - potential - harvest - wealth relationships in general
