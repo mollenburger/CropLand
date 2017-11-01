@@ -1,7 +1,6 @@
 import random
 import math
 import numpy as np
-from operator import itemgetter
 
 from mesa import Agent
 from heapq import nlargest
@@ -88,7 +87,6 @@ class Owner(Agent):
         self.livestock = livestock
         self.econ = econ
         self.plots = []
-        self.mgt = {}
         self.tomove=False
         self.income = []
 
@@ -112,7 +110,6 @@ class Owner(Agent):
         self.plots.append(newplot)
 
     def move_plots(self, n):
-        plots=self.get_plots()
         plotages={}
         for plot in self.plots:
             plotages[plot.plID]=plot.get_land().steps_cultivated
@@ -139,17 +136,15 @@ class Owner(Agent):
                 #what about multiples?
 
     def manage(self, n):
-        plord=sorted(plots,key=plots.get,reverse=True)
+        plotmgt={}
         for plot in self.plots:
-            if plot.plID
-        for key in plord[0:n]:
-            plots[key]='hi'
-        for key in plord[n:len(plord)]:
-            plots[key]='lo'
-        #plots sorted by harvest (high->low)
-        #change first N to mgt 'hi'; rest to 'lo'
-        self.mgt=plots
-
+            plotmgt[plot.plID]=plot.harvest
+        himgt=nlargest(n,plotmgt)
+        for plot in self.plots:
+            if plot.plID in himgt:
+                plot.mgt='hi'
+            else:
+                plot.mgt='lo'
 
 
 
