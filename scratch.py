@@ -1,4 +1,5 @@
 from itertools import cycle, islice, dropwhile
+from operator import itemgetter
 rot = ['C','M','G']
 rotation = cycle(crops)
 next(rotation)
@@ -15,11 +16,82 @@ yld[('C','lo')]
 ylds = {'yield':{('C','lo'):234, ('C','hi'):333},'price':{('C','lo'):2, ('C','hi'):3}}
 
 
+
+plotyld=[('n1',2),('n2',3),('n3',4),('n4',1)]
+plotyld.sort(key=itemgetter(1),reverse=True)
+len(plotyld)
+
+
+plotyld
+
+pldict=dict(plotyld)
+plord=sorted(pldict,key=pldict.get,reverse=True)
+plord[0:3]
+plots=pldict
+n=2
+for key in plord[0:n]:
+    plots[key]='hi'
+for key in plord[n:len(plord)]:
+    plots[key]='lo'
+
+plots
+
+
+
 ylds1 = {('C','lo'):{'yield':234,'price':1}}
 ylds1[('C','lo')]['price']
 
 
 ylds['price'][('C','lo')]
+
+
+ages = {'n1':3,'n2':5,'n3':5,'n4':6,'n5':7}
+
+N=3
+temp_list=[]
+
+words = {'n1':3,'n2':5,'n3':5,'n4':6,'n5':7}
+
+from heapq import nlargest
+nlargest(3,ages)
+
+
+
+
+temp_list = []
+# Select a key in the dictionary
+for current_key in words.keys():
+   # determine the number of words in the sorted list
+   list_length = temp_list
+
+   # start looking at position 0
+   placeholder = 0
+
+   # As long as there are still items in the list
+   while placeholder < list_length:
+
+       # Get the word in the sorted list
+       list_key = temp_list [placeholder]
+
+       # Determine if this word has been entered
+       # more times than the current word
+       if words [list_key] > words [current_key] :
+           break
+
+       # It wasn't, so let's look at the next word
+       # in the sorted list
+       placeholder = placeholder + 1
+
+   # We found the location in the sorted list for
+   # this word, insert it
+   temp_list.insert(placeholder, current_key)
+
+
+   temp_list
+
+for current_key in temp_list:
+   print (current_key, '\t', words [current_key] )
+
 
 
 zip()

@@ -1,13 +1,14 @@
 import random
 import math
 import numpy as np
-import operator
+from operator import itemgetter
 
 from mesa import Agent
+from heapq import nlargest
 
 
 def get_distance(pos_1, pos_2):
-    """ Get the distance between two point
+    """ Get the distance between two points
 
     Args:
         pos_1, pos_2: Coordinate tuples for both points.
@@ -88,7 +89,7 @@ class Owner(Agent):
         self.econ = econ
         self.plots = []
         self.mgt = {}
-        self.plotmove = {}
+        self.tomove=False
         self.income = []
 
     def move(self):
@@ -111,8 +112,17 @@ class Owner(Agent):
         self.plots.append(newplot)
 
     def move_plots(self, n):
-        #sort self.get_plots() by oldest, pick first N to move
-        #returns self.plotmove = {'plID':T/F,...}
+        plots=self.get_plots()
+        plotages={}
+        for plot in self.plots:
+            plotages[plot.plID]=plot.get_land().steps_cultivated
+        tomove = nlargest(n,plotages)
+        for plot in self.plots:
+            if plot.plID in tomove:
+                plot.tomove=True
+            else:
+                plot.tomove=False
+        #changes CropPlot "tomove" value for n oldest plots
         #can only move/expand N plots per step
 
     def buy_draft(self):
@@ -128,14 +138,17 @@ class Owner(Agent):
                 self.wealth - price of livestock
                 #what about multiples?
 
-    def manage(self):
-        plots=[(agent.plID,agent.harvest) for agent in self.plots]
-        plots.sort(key=operator.itemgetter(1))
-        #plots sorted by harvest
-        #change first N to plID,'hi'; rest to plID,'lo'
-        #covert to dict
-
-        #returns self.mgt = {'plID':'mgt',...}
+    def manage(self, n):
+        plord=sorted(plots,key=plots.get,reverse=True)
+        for plot in self.plots:
+            if plot.plID
+        for key in plord[0:n]:
+            plots[key]='hi'
+        for key in plord[n:len(plord)]:
+            plots[key]='lo'
+        #plots sorted by harvest (high->low)
+        #change first N to mgt 'hi'; rest to 'lo'
+        self.mgt=plots
 
 
 
@@ -150,7 +163,7 @@ class Owner(Agent):
     def step(self):
         self.move() # move the owner themselves
         #move/expand--up to 2 ha new cleared land
-        maxplots = 'threshold based on hhsize and draft
+        maxplots = 'threshold based on hhsize and draft'
         if len(self.plots)< maxplots:
             self.expand(n=max(maxplots-len(self.plots), 2))
             #number of move/expand slots=2 for now
