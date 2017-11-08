@@ -1,9 +1,11 @@
 import random
 import math
 import numpy as np
+import pandas as pd
 
 from mesa import Agent
 from heapq import nlargest
+from copy import deepcopy
 
 
 def get_distance(pos_1, pos_2):
@@ -20,16 +22,19 @@ def get_distance(pos_1, pos_2):
     return math.sqrt(dx ** 2 + dy ** 2)
 
 class CropPlot(Agent):
-    def __init__(self, pos, model, crop, plID, moore=True, owner=0, harvest=0,mgt='lo',rot=['C','M','G']):
+    def __init__(self, pos, model, crop, owner, plID, harvest=0, GM=0, mgt='lo',rot=['C','M','G'],moore=True,tomove=True):
         super().__init__(pos, model)
         self.pos = pos
-        self.moore = moore
-        self.owner = owner
-        self.harvest = harvest
-        self.mgt = mgt
         self.crop = crop
-        self.plID = plID
-        self.yields = self.yields[(self.crop,self.mgt)] # returns list of dicts: cost, avg yield, price
+        self.owner = owner
+        self.plID = plID #plotID
+        self.harvest = harvest
+        self.GM = GM
+        self.mgt = mgt
+        self.rot = rot
+        self.moore = moore
+        self.tomove = tomove
+
 
     def get_land(self, pos):
         this_cell = self.model.grid.get_cell_list_contents([pos])
@@ -67,27 +72,25 @@ class CropPlot(Agent):
 
     def step(self):
         crop_land = self.get_land(self.pos)
-        yields = self.get_owner().econ[(self.crop,self.mgt)]
-        self.mgt = self.get_owner().mgt['plID']
+        yields = self.get_owner().econ.loc[(self.crop,self.mgt)]
         self.crop = self.rot[(self.rot.index(self.crop)+1)%len(self.rot)] #next crop in the rotation
         self.harvest = crop_land.potential*yields['harvest']
         self.GM = self.harvest*yields['price']-yields['cost']
-        if self.get_owner().mgt['plID']==True:
+        if self.tomove==True:
             self.move()
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, vision, wealth, econ, hhsize, draft, livestock=0):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses,vision=10):
         super().__init__(pos, model)
         self.owner=owner
         self.vision = vision
         self.wealth = wealth
-        self.threshold = threshold
-        self.pop = hhsize
+        self.hhsize = hhsize
         self.draft = draft
         self.livestock = livestock
-        self.econ = econ
+        self.expenses = expenses
+        self.econ = self.model.econ
         self.plots = []
-        self.tomove=False
         self.income = []
 
     def move(self):
@@ -103,94 +106,104 @@ class Owner(Agent):
                 self.plots.append(agent)
 
     def expand(self, n): #n=number of plots to expand
-        newplot = CropPlot(self.pos, self.model, owner=self.owner, plID=len(self.plots)+1)#unique ID n+1
+        defrot = self.plots[0].rot
+        crop = defrot[random.randint(0,(len(defrot)-1))]
+        newplot = CropPlot(self.pos, self.model, owner=self.owner, plID=len(self.plots)+1,crop=crop)#unique ID n+1
         self.model.grid.place_agent(newplot,(newplot.pos))
         newplot.move()
         self.model.schedule.add(newplot)
         self.plots.append(newplot)
 
     def move_plots(self, n):
-        plotages={}
+        plotages=[]
         for plot in self.plots:
-            plotages[plot.plID]=plot.get_land().steps_cultivated
-        tomove = nlargest(n,plotages)
+            plotages.append((plot.plID,plot.get_land(plot.pos).steps_cult))
+        plotages.sort(key=lambda x: x[1],reverse=True)
         for plot in self.plots:
-            if plot.plID in tomove:
+            if plot.plID in plotages[:n]:
                 plot.tomove=True
             else:
                 plot.tomove=False
         #changes CropPlot "tomove" value for n oldest plots
         #can only move/expand N plots per step
 
-    def buy_draft(self):
-        if wealth > price of draft:
-            self.draft + 1
-            self.wealth - price of draft
-            # what about buying more than one?
-
-     def buy_livestock(self):
-        if wealth > price of livestock and wealth < price of draft:
-            if self.draft >2:
-                self.livestock + 1
-                self.wealth - price of livestock
-                #what about multiples?
-
-    def manage(self, n):
-        plotmgt={}
-        for plot in self.plots:
-            plotmgt[plot.plID]=plot.harvest
-        himgt=nlargest(n,plotmgt)
-        for plot in self.plots:
-            if plot.plID in himgt:
-                plot.mgt='hi'
-            else:
-                plot.mgt='lo'
-
-
-
-    # def get_wealth(self):
-    #     plotwealth = []
-    #     for agent in self.plots:
-    #         plotwealth.append(agent.harvest)
-    #     self.wealth = sum(plotwealth)
 
 
     def step(self):
         self.move() # move the owner themselves
         #move/expand--up to 2 ha new cleared land
-        maxplots = 'threshold based on hhsize and draft'
+        maxplots = self.hhsize*0.5+self.draft*0.1
         if len(self.plots)< maxplots:
-            self.expand(n=max(maxplots-len(self.plots), 2))
-            #number of move/expand slots=2 for now
-        self.move_plots(n=2-max(maxplots-len(self.plots), 2))
-        #calculate lo mgt costs
-        crops = []
-        for agent in self.plots:
-            nextcrop = agent.rot[(agent.rot.index(agent.crop)+1)%len(agent.rot)]
-            crops.append(nextcrop)
-        cost = []
-        for crop in crops:
-            cost.append(econ[(crop,'lo')]['cost'])
+            dif=np.floor(maxplots-len(self.plots))
+            self.expand(n=max(dif, 2))
+            self.move_plots(n=2-dif)
+        else:
+            self.move_plots(n=2)
         #calculate crop income
         plotinc = []
-        for agent in self.plots:
-            plotinc.append(agent.harvest)
+        for plot in self.plots:
+            plotinc.append(plot.GM)
         self.income.append(sum(plotinc))
         self.wealth =self.wealth + sum(plotinc)
-        self.wealth = self.wealth - (sum(cost)+'hh expenses per person'*self.pop)
+        # take out family expenses
+        self.wealth = self.wealth - self.expenses*self.hhsize
+
+        #calculate  crop mgt costs
+        mgt=[]
+        for plot in self.plots:
+            plID = plot.plID
+            nextcrop = plot.rot[(plot.rot.index(plot.crop)+1)%len(plot.rot)]
+            locost = self.model.econ.loc[nextcrop,'lo']['cost']
+            hicost = self.model.econ.loc[nextcrop,'hi']['cost']
+            harvest = plot.harvest
+            mgt.append([plID,nextcrop,locost,hicost,harvest])
+        plotmgt=pd.DataFrame(mgt,columns=['plID','crop','locost','hicost','harvest'])
+        plotmgt.sort_values(by='harvest',inplace=True)
+        mincost=sum(plotmgt['locost'])
+
+        # calculate available wealth after hh expenses and minimum inputs
+        available = self.wealth - mincost
         # buy livestock and draft animals
-        self.buy_draft()
-        self.buy_livestock()
+        if available > self.model.draftprice:
+            self.draft = self.draft + 1
+            self.wealth = self.wealth - self.model.draftprice
+        elif available > self.model.livestockprice and available < self.model.draftprice:
+            if self.draft >2:
+                self.livestock = self.livestock + 1
+                self.wealth = self.wealth - self.model.livestockprice
+        else:
+            print('no livestock purchased')
+
         #define management for each plot
-        self.manage()
+        if self.wealth > mincost:
+            avail = self.wealth-mincost
+            himgt = []
+            for i in range(len(mgt)):
+                if avail>0:
+                    himgt.append(plotmgt.loc[i]['plID'])
+                    avail = avail-(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost'])
+                else:
+                    avail = avail+(plotmgt.loc[i-1]['hicost']-plotmgt.loc[i-1]['locost'])
+                    del(himgt[len(himgt)-1])
+                    if avail<=0:
+                        avail = avail+(plotmgt.loc[i-2]['hicost']-plotmgt.loc[i-2]['locost'])
+                        del(himgt[len(himgt)-1])
+            self.wealth = avail
+            for plot in self.plots:
+                if plot.plID in himgt:
+                    plot.mgt='hi'
+                else:
+                    plot.mgt='lo'
+        else:
+            print('Error: wealth lower than minimum input cost')
 
 
-    def statusreport(self):
-        return [self.owner, len(self.plots), self.wealth]
+    # def statusreport(self):
+    #     return [self.owner, len(self.plots), self.wealth, self.income,self.draft,self.livestock]
 
 
 class Land(Agent):
-    def __init__(self, pos, model, suitability, feasibility, steps_cult=0, steps_fallow=0):
+    def __init__(self, pos, model, suitability, feasibility=1, steps_cult=0, steps_fallow=0):
         super().__init__(pos, model)
         self.suitability = suitability
         self.feasibility = feasibility

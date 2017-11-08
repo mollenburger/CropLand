@@ -1,5 +1,7 @@
 from itertools import cycle, islice, dropwhile
 from operator import itemgetter
+import numpy as np
+import pandas as pd
 rot = ['C','M','G']
 rotation = cycle(crops)
 next(rotation)
@@ -10,14 +12,41 @@ crops.index('C')
 
 rot[(rot.index('M')+1)%len(rot)]
 
-yld = {('C','lo'):234, ('C','hi'):333}
+yld = pd.DataFrame(index=pd.MultiIndex.from_tuples([('C','lo'), ('C','hi')]),columns=['cost','price','yield'])
+yld.loc[('C','lo')]['cost']
+
+econ = pd.read_csv('econ_init.csv',index_col=['crop','mgt'])
+
+econ.loc['C','lo']['cost']
+
+
+
+
+yld.loc[('C','lo')]
+yld
+
+yld[('C','lo')]
+
 yld[('C','lo')]
 
 ylds = {'yield':{('C','lo'):234, ('C','hi'):333},'price':{('C','lo'):2, ('C','hi'):3}}
 
+testlst = [1,2,3,4,5,6]
+del(testlst[len(testlst)-1])
+testlst
+
+testlst.pop()
 
 
 plotyld=[('n1',2),('n2',3),('n3',4),('n4',1)]
+dty=[('plID','S10'),('harvest',float)]
+py=np.array(plotyld,dtype=dty)
+
+np.sort(py, order='harvest')
+py['harvest'].pop()
+
+py[0]['plID']
+
 plotyld.sort(key=itemgetter(1),reverse=True)
 len(plotyld)
 
@@ -40,7 +69,7 @@ plots
 
 ylds1 = {('C','lo'):{'yield':234,'price':1}}
 ylds1[('C','lo')]['price']
-
+plotmgt = np.array()
 
 ylds['price'][('C','lo')]
 
@@ -56,45 +85,6 @@ from heapq import nlargest
 nlargest(3,ages)
 
 
-
-
-temp_list = []
-# Select a key in the dictionary
-for current_key in words.keys():
-   # determine the number of words in the sorted list
-   list_length = temp_list
-
-   # start looking at position 0
-   placeholder = 0
-
-   # As long as there are still items in the list
-   while placeholder < list_length:
-
-       # Get the word in the sorted list
-       list_key = temp_list [placeholder]
-
-       # Determine if this word has been entered
-       # more times than the current word
-       if words [list_key] > words [current_key] :
-           break
-
-       # It wasn't, so let's look at the next word
-       # in the sorted list
-       placeholder = placeholder + 1
-
-   # We found the location in the sorted list for
-   # this word, insert it
-   temp_list.insert(placeholder, current_key)
-
-
-   temp_list
-
-for current_key in temp_list:
-   print (current_key, '\t', words [current_key] )
-
-
-
-zip()
 
 import random
 import numpy as np
@@ -116,82 +106,32 @@ crops.run_model(step_count=10)
 
 
 exown = crops.schedule.agents_by_breed[Owner][5]
-listharvests = []
-listharvests = [(agent.pos,agent.harvest) for agent in exown.plots]
-listharvests
-import operator
-listharvests.sort(key=operator.itemgetter(1))
-listharvests
-dict(listharvests)
-
-plotloc = [agent.pos for agent in exown.plots]
-plotloc
-plots_x,plots_y = zip (*[agent.pos for agent in exown.plots])
-
-plots_x
-plots_y
-np.mean(plots_x)
 
 
-exown.plots[1].owner
-
-crops.schedule.get_breed_count(CropPlot)
-crops.CropPlotcollector.get_model_vars_dataframe()
-
-plothar = crops.schedule.agents_by_breed[CropPlot]
-len(plothar)
-[agent.harvest for agent in plothar]
-
-
-[agent.get_land(agent.pos).steps_cult for agent in plothar]
+mgt=[]
+for plot in exown.plots:
+    plID = plot.plID
+    nextcrop = plot.rot[(plot.rot.index(plot.crop)+1)%len(plot.rot)]
+    locost = exown.model.econ.loc[nextcrop,'lo']['cost']
+    hicost = exown.model.econ.loc[nextcrop,'hi']['cost']
+    harvest = plot.harvest
+    mgt.append([plID,nextcrop,locost,hicost,harvest])
 
 
+print(mgt)
+plotmgt=pd.DataFrame(mgt,columns=['plID','crop','locost','hicost','harvest'])
+plotmgt.sort_values(by='harvest',inplace=True)
 
-exown.plots[2].harvest
-plotwealth = []
-for agent in exown.plots:
-    plotwealth.append(agent.harvest)
-plotwealth
-sum(plotwealth)
-
-exown.wealth=sum(plotwealth)
-exown.wealth
-
-excp = crops.schedule.agents_by_breed[CropPlot][0]
-excp.get_land(excp.pos).potential
+mincost=sum(plotmgt['locost'])
 
 
-
-
-config = np.genfromtxt('owner_init.csv',dtype=int,delimiter=',',skip_header=1)
-config[:,0]
-len(config)
-config.shape[0]
-config[1,2]
-range(config.shape[0])
-for i in range(config.shape[0]):
-    print(i)
-
-config
-#plotsdict = dict(zip(initfr['owner'],initfr['plots']))
-
-initfr = pd.read_csv('owner_init.csv')
-addon=pd.DataFrame([[11,3,4]], columns=['owner','plots','wealth']).set_index('owner')
-initfr.append(addon)
-
-inm = initfr.as_matrix()
-inm
-np.append(inm,[[11,2,0]],axis=0)
-
-backto = pd.DataFrame(inm,columns=['plot','wealth'])
-backto
-range(9)
-
-
-plots = initfr['plots'].to_dict()
-wealth = initfr['wealth'].to_dict()
-pls = pd.Series(plots,name='plots')
-wes = pd.Series(wealth,name='wealth')
-pd.concat([pls,wes],axis=1)
-len(initfr.index)
-initfr.index
+from copy import deepcopy
+random.randint(0,(len(rot)-1))
+rot[len(rot)-1]
+rot[random.randint(0,(len(rot)-1))]
+rot=['C','M','G']
+rot
+pickone=deepcopy(rot)
+random.shuffle(pickone)
+pickone[0]
+rot
