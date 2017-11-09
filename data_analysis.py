@@ -19,31 +19,25 @@ crops = CropMove(config_file='owner_init.csv',econ_file='econ_init.csv', height=
 crops.run_model(step_count=5)
 
 
-
-defrot=['C','M','G']
-defrot[random.randint(0,(len(defrot)-1))]
-
-
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
 
 ownhist.to_csv('owner_history.csv')
-owners =list(ownhist.loc[9]['owner'])
-incomes = list(ownhist.loc[9]['income'])
-pd.DataFrame(np.array(list(ownhist.loc[9]['income'])),index=ownhist.loc[9]['owner']).to_csv('incomes.csv')
+owners =list(ownhist.loc[4]['owner'])
+incomes = list(ownhist.loc[4]['income'])
+pd.DataFrame(np.array(list(ownhist.loc[4]['income'])),index=ownhist.loc[4]['owner']).to_csv('incomes.csv')
 
 
-np.floor(3.3)
 
-
-cphist.set_index('owner')
 cphist['X'],cphist['Y'] = zip (*cphist['AgentID'])
+cphist.set_index('owner')
 cphist.to_csv('crophist')
-crops.draftprice
+
+
+
+
 exown = crops.schedule.agents_by_breed[Owner][5]
-
-
 plotages=[]
 for plot in exown.plots:
     plotages.append((plot.plID,plot.get_land(plot.pos).steps_cult))
@@ -52,9 +46,7 @@ plotages.sort(key=lambda x: x[1],reverse=True)
 plotages[:2]
 plotages
 
-om heapq import nlargest
-tomove = nlargest(2,plotages)
-tomove
+
 
 
 exown.wealth

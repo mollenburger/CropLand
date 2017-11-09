@@ -6,8 +6,14 @@ livestockpr=125000
 wealth = ownhist[order(ownhist$owner),c('owner','Step','wealth')]
 draft = ownhist[order(ownhist$owner),c('owner','Step','draft')]
 wealth
+draft
 incomes<-read.csv('incomes.csv')
 
 crophist = read.csv('crophist')
 crophist = within(crophist, rm("AgentID"))
 crophist = within(crophist, rm('X.1'))
+
+nrow(crophist[crophist$mgt=='hi',])
+nrow(crophist)
+
+tail(crophist)
