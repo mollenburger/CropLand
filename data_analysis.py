@@ -8,37 +8,63 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land
+from cropland.agents import CropPlot, Land, Owner
 from cropland.schedule import RandomActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
 
 %matplotlib inline
 
-crops = CropMove(config_file='owner_init.csv', height=50, width=50)
-crops.run_model(step_count=10)
+crops = CropMove(config_file='owner_init.csv',econ_file='econ_init.csv', height=50, width=50)
+crops.run_model(step_count=5)
+
+
+
+defrot=['C','M','G']
+defrot[random.randint(0,(len(defrot)-1))]
 
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
 
-
-landhist.reset_index(inplace=True)
-landhist['X'],landhist['Y'] = zip (*landhist['AgentID'])
-
-landstep = pd.DataFrame(landhist[["Step","X","Y","cultivated","fallow","potential"]]).set_index("Step")
-landstep.head()
-
-endst = landstep.ix[9]
-endpot = endst.pivot(index='X',columns='Y',values='potential')
-endfal = endst.pivot(index='X',columns='Y',values='fallow')
-endcult = endst.pivot(index='X',columns='Y',values='cultivated')
+ownhist.to_csv('owner_history.csv')
+owners =list(ownhist.loc[9]['owner'])
+incomes = list(ownhist.loc[9]['income'])
+pd.DataFrame(np.array(list(ownhist.loc[9]['income'])),index=ownhist.loc[9]['owner']).to_csv('incomes.csv')
 
 
-cphist.reset_index(inplace=True)
+np.floor(3.3)
+
+
+cphist.set_index('owner')
 cphist['X'],cphist['Y'] = zip (*cphist['AgentID'])
+cphist.to_csv('crophist')
+crops.draftprice
+exown = crops.schedule.agents_by_breed[Owner][5]
+
+
+plotages=[]
+for plot in exown.plots:
+    plotages.append((plot.plID,plot.get_land(plot.pos).steps_cult))
+
+plotages.sort(key=lambda x: x[1],reverse=True)
+plotages[:2]
+plotages
+
+om heapq import nlargest
+tomove = nlargest(2,plotages)
+tomove
+
+
+exown.wealth
+exown.expenses*exown.hhsize
+
+exown.plots[0].rot
 cpstep = pd.DataFrame(cphist[["Step","X","Y","harvest"]]).set_index("Step")
+
+
+
 cpstep.tail()
 endcp = cpstep.ix[9].pivot(index='X',columns='Y',values='harvest')
 
