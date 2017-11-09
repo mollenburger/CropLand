@@ -132,11 +132,11 @@ class Owner(Agent):
     def step(self):
         self.move() # move the owner themselves
         #move/expand--up to 2 ha new cleared land
-        maxplots = self.hhsize*0.5+self.draft*0.1
+        maxplots = np.floor(self.hhsize*0.5+self.draft*2)
         if len(self.plots)< maxplots:
             dif=np.floor(maxplots-len(self.plots))
             self.expand(n=max(dif, 2))
-            self.move_plots(n=2-dif)
+            self.move_plots(n=int(2-dif))
         else:
             self.move_plots(n=2)
         #calculate crop income
