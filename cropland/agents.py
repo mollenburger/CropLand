@@ -172,7 +172,7 @@ class Owner(Agent):
                 self.livestock = self.livestock + 1
                 self.wealth = self.wealth - self.model.livestockprice
         else:
-            print('no livestock purchased')
+            print('no livestock purchased: owner' + str(self.owner))
 
         #define management for each plot
         if self.wealth > mincost:
@@ -195,7 +195,7 @@ class Owner(Agent):
                 else:
                     plot.mgt='lo'
         else:
-            print('Error: wealth lower than minimum input cost')
+            print('wealth lower than minimum input cost: wealth =' + str(self.wealth) +'owner=' +str(self.owner))
 
 
     # def statusreport(self):
