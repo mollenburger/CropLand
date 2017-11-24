@@ -13,7 +13,8 @@ color_dic = {10: "Aqua",
                 4: "Lime",
                 3: "Teal",
                 2: "Olive",
-                1: "Gray"}
+                1: "Gray",
+                0: "Black"}
 
 
 def CropAgents_portrayal(agent):
@@ -42,7 +43,7 @@ def CropAgents_portrayal(agent):
     return portrayal
 
 
-canvas_element = CanvasGrid(CropAgents_portrayal, 50, 50, 500, 500)
+canvas_element = CanvasGrid(CropAgents_portrayal, 60, 70, 600, 600)
 chart_element = ChartModule([{"Label": "CropPlot", "Color": "#AA0000"}],data_collector_name='CropPlotcollector')
 
 server = ModularServer(CropMove, [canvas_element, chart_element],

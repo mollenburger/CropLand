@@ -21,6 +21,28 @@ def get_distance(pos_1, pos_2):
     dy = y1 - y2
     return math.sqrt(dx ** 2 + dy ** 2)
 
+class Land(Agent):
+    def __init__(self, pos, model, suitability, feasibility, steps_cult=0, steps_fallow=5):
+        super().__init__(pos, model)
+        self.suitability = suitability
+        self.feasibility = feasibility
+        self.steps_cult = steps_cult
+        self.steps_fallow = steps_fallow
+        self.potential = self.suitability+self.steps_fallow #magnitudes
+        self.desirable = self.potential*self.feasibility
+
+    def step(self):
+        if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
+            self.steps_cult = self.steps_cult + 1
+            self.steps_fallow = 0
+            self.potential = self.suitability-0.1*self.steps_cult
+            self.desirable = self.potential *self.feasibility
+        else:
+            self.steps_fallow = self.steps_fallow + 1
+            self.steps_cult = 0
+            self.potential = self.suitability+self.steps_fallow
+            self.desirable = self.potential *self.feasibility
+
 class CropPlot(Agent):
     def __init__(self, pos, model, crop, owner, plID, harvest=0, GM=0, mgt='lo',rot=['C','M','G'],moore=True,tomove=True):
         super().__init__(pos, model)
@@ -57,9 +79,9 @@ class CropPlot(Agent):
         owner = self.get_owner()
         neighbors = [i for i in self.model.grid.get_neighborhood(self.pos, self.moore,
                 False, radius=owner.vision) if not self.is_occupied(i)]
-        # Look for location with the highest potential productivity
-        max_prod = max([self.get_land(pos).potential for pos in neighbors])
-        candidates = [pos for pos in neighbors if self.get_land(pos).potential ==
+        # Look for (feasible) location with the highest potential productivity
+        max_prod = max([self.get_land(pos).desirable for pos in neighbors])
+        candidates = [pos for pos in neighbors if self.get_land(pos).desirable ==
                 max_prod]
         # Narrow down to the nearest ones
         min_dist = min([get_distance(self.pos, pos) for pos in candidates])
@@ -131,14 +153,6 @@ class Owner(Agent):
 
     def step(self):
         self.move() # move the owner themselves
-        #move/expand--up to 2 ha new cleared land
-        maxplots = np.floor(self.hhsize*0.5+self.draft*2)
-        if len(self.plots)< maxplots:
-            dif=np.floor(maxplots-len(self.plots))
-            self.expand(n=max(dif, 2))
-            self.move_plots(n=int(2-dif))
-        else:
-            self.move_plots(n=2)
         #calculate crop income
         plotinc = []
         for plot in self.plots:
@@ -147,7 +161,14 @@ class Owner(Agent):
         self.wealth =self.wealth + sum(plotinc)
         # take out family expenses
         self.wealth = self.wealth - self.expenses*self.hhsize
-
+        #move/expand--up to 2 ha new cleared land
+        maxplots = np.floor(self.hhsize*0.5+self.draft*2)
+        if len(self.plots)< maxplots:
+            dif=np.floor(maxplots-len(self.plots))
+            self.expand(n=max(dif, 2))
+            self.move_plots(n=int(2-dif))
+        else:
+            self.move_plots(n=2)
         #calculate  crop mgt costs
         mgt=[]
         for plot in self.plots:
@@ -200,23 +221,3 @@ class Owner(Agent):
 
     # def statusreport(self):
     #     return [self.owner, len(self.plots), self.wealth, self.income,self.draft,self.livestock]
-
-
-class Land(Agent):
-    def __init__(self, pos, model, suitability, feasibility=1, steps_cult=0, steps_fallow=0):
-        super().__init__(pos, model)
-        self.suitability = suitability
-        self.feasibility = feasibility
-        self.steps_cult = steps_cult
-        self.steps_fallow = steps_fallow
-        self.potential = self.suitability*self.feasibility+self.steps_fallow #magnitudes?
-
-    def step(self):
-        if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
-            self.steps_cult = self.steps_cult + 1
-            self.steps_fallow = 0
-            self.potential = self.suitability*self.feasibility #add reduction based on steps_cult
-        else:
-            self.steps_fallow = self.steps_fallow + 1
-            self.steps_cult = 0
-            self.potential = self.suitability*self.feasibility+self.steps_fallow

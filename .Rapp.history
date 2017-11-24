@@ -1,0 +1,411 @@
+require(lsmeans)#
+### Covariance example (from Montgomery Design (8th ed.), p.656)#
+# Uses supplied dataset 'fiber'#
+fiber.lm <- lm(strength ~ diameter + machine, data = fiber)#
+# adjusted means and comparisons, treating machine C as control#
+( fiber.lsm <- lsmeans (fiber.lm, "machine") )#
+contrast(fiber.lsm, "trt.vs.ctrlk")#
+# Or get both at once using#
+#     lsmeans (fiber.lm, "machine", contr = "trt.vs.ctrlk")
+install.packages('fitbitScraper')
+library(fitbitScraper)
+get_intraday_data(cookie,what="heart-rate",date='2016-01-03')
+cookie <- login(email="mollenburger@gmail.com", password="Catalina06")#
+hr1 = get_intraday_data(cookie,what="heart-rate",date='2016-01-03')
+head(hr1)
+sleep = get_sleep_data(cookie,start_date='2016-01-01',end_date='2016-01-03')
+str(sleep)
+sleep[df]
+sleep$df
+cookie <- login(email="mollenburger@gmail.com", password="Catalina06")#
+sl1 = get_intraday_data(cookie,what="sleep",date='2016-01-03')
+library(fitbitScraper)#
+library(scales)#
+cookie = login(email="lorata@gmail.com", password='T3mpor@ry')#
+#scrape = get_sleep_data(cookie,start_date='2015-03-15',end_date='2016-01-08')#
+scrape = get_sleep_data(cookie,start_date='2015-09-14',end_date='2016-01-08')#
+sldf = as.data.frame(scrape$df)#
+asleep=as.numeric(sldf$minAsleep)#
+in_bed=as.numeric(sldf$sleepDuration)#
+restlessCount<-as.numeric(scrape$df$restlessCount)#
+end=as.character(scrape$df$endTime)#
+start=as.character(scrape$df$startTime)#
+for(i in 1:length(end)){#
+	if(nchar(end[i])==4) end[i] <- paste(0,end[i],sep='')}#
+for(i in 1:length(start)){#
+	if(nchar(start[i])==4) start[i] <- paste(0,start[i],sep='')#
+	if(substr(start[i],1,1)==0) start[i]<-paste(as.character(as.numeric(substr(start[i],1,2))+24),substr(start[i],4,5),sep=':')}#
+startdec<-start#
+for(i in 1:length(start)){#
+	startdec[i]<-as.numeric(substr(startdec[i],1,2))+as.numeric(substr(startdec[i],4,5))/60}#
+startdec<-as.numeric(startdec)#
+enddec<-end#
+	for(i in 1:length(end)){#
+	enddec[i]<-as.numeric(substr(enddec[i],1,2))+as.numeric(substr(enddec[i],4,5))/60}#
+enddec<-as.numeric(enddec)#
+date=as.Date(as.character(scrape$df$date))#
+asleep<-data.frame(date,asleep,in_bed,start,end,restlessCount)#
+sltot<-ddply(asleep,.(date),function(df) colSums(df[,2:3]))#
+slp<-melt(sltot,id.vars='date')#
+efficiency = with(asleep,(asleep/in_bed)*100)#
+#
+qplot(date,value/60,data=slp,color=variable)+theme_bw()+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	scale_y_continuous(name='Hours',limits=c(1,10),breaks=1:10)+#
+	scale_color_brewer(palette='Set1',labels=c('Asleep','In bed'))+theme(legend.title=element_blank())
+library(fitbitScraper)#
+library(scales)#
+cookie = login(email="mollenburger@gmail.com", password='Catalina06')#
+#scrape = get_sleep_data(cookie,start_date='2015-03-15',end_date='2016-01-08')#
+scrape = get_sleep_data(cookie,start_date='2015-09-01',end_date='2016-01-08')#
+sldf = as.data.frame(scrape$df)#
+asleep=as.numeric(sldf$minAsleep)#
+in_bed=as.numeric(sldf$sleepDuration)#
+restlessCount<-as.numeric(scrape$df$restlessCount)#
+end=as.character(scrape$df$endTime)#
+start=as.character(scrape$df$startTime)#
+for(i in 1:length(end)){#
+	if(nchar(end[i])==4) end[i] <- paste(0,end[i],sep='')}#
+for(i in 1:length(start)){#
+	if(nchar(start[i])==4) start[i] <- paste(0,start[i],sep='')#
+	if(substr(start[i],1,1)==0) start[i]<-paste(as.character(as.numeric(substr(start[i],1,2))+24),substr(start[i],4,5),sep=':')}#
+startdec<-start#
+for(i in 1:length(start)){#
+	startdec[i]<-as.numeric(substr(startdec[i],1,2))+as.numeric(substr(startdec[i],4,5))/60}#
+startdec<-as.numeric(startdec)#
+enddec<-end#
+	for(i in 1:length(end)){#
+	enddec[i]<-as.numeric(substr(enddec[i],1,2))+as.numeric(substr(enddec[i],4,5))/60}#
+enddec<-as.numeric(enddec)#
+date=as.Date(as.character(scrape$df$date))#
+asleep<-data.frame(date,asleep,in_bed,start,end,restlessCount)#
+sltot<-ddply(asleep,.(date),function(df) colSums(df[,2:3]))#
+slp<-melt(sltot,id.vars='date')#
+efficiency = with(asleep,(asleep/in_bed)*100)#
+#
+qplot(date,value/60,data=slp,color=variable)+theme_bw()+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	scale_y_continuous(name='Hours',limits=c(1,10),breaks=1:10)+#
+	scale_color_brewer(palette='Set1',labels=c('Asleep','In bed'))+theme(legend.title=element_blank())
+qplot(date,efficiency)+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	ylab('Sleep efficiency (%)')+theme_bw()
+qplot(date,startdec)+theme_bw()+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	scale_y_continuous(name='Sleep start',limits=c(20,28),breaks=c(20,22,24,26,28),labels=c('20:00','22:00','0:00','2:00','4:00'))#
+#
+q
+qplot(date,enddec)+theme_bw()+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	scale_y_continuous(name='Sleep end',limits=c(4,10),breaks=c(4,6,8,10),labels=c('04:00','06:00','08:00','10:00'))
+qplot(startdec,efficiency)+ylab('Sleep efficiency (%)')+theme_bw()+#
+	scale_x_continuous(name='Sleep start',limits=c(20,28),breaks=c(20,22,24,26,28),labels=c('20:00','22:00','0:00','2:00','4:00'))
+qplot(enddec,efficiency)+theme_bw()+ylab('Sleep efficiency (%)')+#
+	scale_x_continuous(name='Sleep end',limits=c(4,10),breaks=c(4,6,8,10),labels=c('04:00','06:00','08:00','10:00'))
+write.csv(sleep,"~/Dropbox/personal/sleep/sleep.csv")
+sleep
+sleep<-data.frame(date,asleep,in_bed,start,end,restlessCount)#
+sltot<-ddply(asleep,.(date),function(df) colSums(df[,2:3]))#
+slp<-melt(sltot,id.vars='date')#
+efficiency = with(asleep,(asleep/in_bed)*100)#
+#
+qplot(date,value/60,data=slp,color=variable)+theme_bw()+geom_smooth(method='loess',span=0.7)+#
+	scale_x_date(name='Date',breaks=date_breaks('months'),labels=date_format("%d-%b"))+#
+	scale_y_continuous(name='Hours',limits=c(1,10),breaks=1:10)+#
+	scale_color_brewer(palette='Set1',labels=c('Asleep','In bed'))+theme(legend.title=element_blank())
+?get_daily_data
+library(fitbitScraper)#
+library(scales)#
+cookie = login(email="mollenburger@gmail.com", password='Catalina06')#
+zones = get_daily_data(cookie,what="getTimeInHeartRateZonesPerDay"start_date='2015-09-01',end_date='2016-01-08')#
+restrate = get_daily_data(cookie,what="getRestingHeartRateData"start_date='2015-09-01',end_date='2016-01-08')
+get_daily_data(cookie,what="getTimeInHeartRateZonesPerDay",start_date='2015-09-01',end_date='2016-01-08')#
+restrate = get_daily_data(cookie,what="getRestingHeartRateData",start_date='2015-09-01',end_date='2016-01-08')
+zones = get_daily_data(cookie,what="getTimeInHeartRateZonesPerDay",start_date='2015-09-01',end_date='2016-01-08')
+str(zones)
+names(zones)[1]<-'date'
+zones$date<-as.Date(zones$date)
+str(restrate)
+names(restrate)<-c('date','restrate')#
+restrate$date<-as.Date(restrate$date)
+HR<-merge(zones,restrate,by='date')
+HRsl<-merge(HR,sleep,by='date')
+head(HRsl)
+head(sleep)
+scrape = get_sleep_data(cookie,start_date='2015-09-01',end_date='2016-01-08')#
+sldf = as.data.frame(scrape$df)#
+asleep=as.numeric(sldf$minAsleep)#
+in_bed=as.numeric(sldf$sleepDuration)#
+restlessCount<-as.numeric(scrape$df$restlessCount)#
+end=as.character(scrape$df$endTime)#
+start=as.character(scrape$df$startTime)#
+for(i in 1:length(end)){#
+	if(nchar(end[i])==4) end[i] <- paste(0,end[i],sep='')}#
+for(i in 1:length(start)){#
+	if(nchar(start[i])==4) start[i] <- paste(0,start[i],sep='')#
+	if(substr(start[i],1,1)==0) start[i]<-paste(as.character(as.numeric(substr(start[i],1,2))+24),substr(start[i],4,5),sep=':')}#
+startdec<-start#
+for(i in 1:length(start)){#
+	startdec[i]<-as.numeric(substr(startdec[i],1,2))+as.numeric(substr(startdec[i],4,5))/60}#
+startdec<-as.numeric(startdec)#
+enddec<-end#
+	for(i in 1:length(end)){#
+	enddec[i]<-as.numeric(substr(enddec[i],1,2))+as.numeric(substr(enddec[i],4,5))/60}#
+enddec<-as.numeric(enddec)#
+date=as.Date(as.character(scrape$df$date))#
+sleep<-data.frame(date,asleep,in_bed,start,end,restlessCount)
+sleep
+head(sleep)
+sleep$efficiency<-efficiency
+HR
+head(HR)
+sleep$date[1]+1
+sleep$date+1
+sleep$date
+sleep1$date<-sleep1$date+1
+sleep1<-sleep
+sleep1$date<-sleep1$date+1
+HRsl<-merge(HR,sleep1,by='date')
+head(HRsl)
+qplot(restrate,asleep)
+qplot(restrate,asleep,data=HRsl)
+sltot<-ddply(asleep,.(date),function(df) colSums(df[,2:3]))
+sltot<-ddply(sleep,.(date),function(df) colSums(df[,2:3]))
+sltot1<-sltot#
+sltot1$date<-sltot1$date+1
+qplot(restrate,asleep,data=HRstot)
+HRstot<-merge(HR,sltot1,by='date')
+qplot(restrate,asleep,data=HRstot)
+qplot(zone1,asleep,data=HRstot)
+qplot(zone1,efficiency,data=HRsl)
+qplot(zone1+zone2+zone3,efficiency,data=HRsl)+theme_bw()+xlab('
+')
+qplot(zone1+zone2+zone3,efficiency,data=HRsl)+theme_bw()+xlab('Time with elevated heart rate (min)')+ylab('Sleep efficiency (%)')
+qplot(zone1+zone2+zone3,efficiency,data=HRsl)+theme_bw()+xlab('Time with elevated heart rate (min)')+ylab('Sleep efficiency (%)')+geom_smooth()
+qplot(zone1+zone2+zone3,efficiency,data=HRsl)+theme_bw()+#
+	xlab('Time with elevated heart rate (min)')+#
+	ylab('Sleep efficiency (%)')
+qplot(zone1,asleep,data=HRstot)
+qplot(zone1+zone2+zone3,asleep,data=HRstot)+theme_bw()+#
+	xlab('Time with elevated heart rate (min)')+#
+	ylab('Time asleep')
+qplot(zone1+zone2+zone3,asleep,data=HRstot)+theme_bw()+#
+	xlab('Time with elevated heart rate (min)')+#
+	ylab('Time asleep (min)')
+qplot(zone1+zone2+zone3,asleep,data=HRstot)+theme_bw()+#
+	geom_abline(slope=1,intercept=0)+#
+	xlab('Time with elevated heart rate (min)')+#
+	ylab('Time asleep (min)')
+conf1<-read.csv('~/Dropbox/GIS/Remote sensing_AR/VHRI images 2015/20151016-dieba/bayes_confusion.csv')
+conf1
+names(conf1)<-c('class','X1','X2','X3','X4','X6','X7')
+conf1
+conf1<-conf1[,-1]
+conf1
+?matrix
+conf1<-as.matrix(conf1[,-1])
+conf1<-read.csv('~/Dropbox/GIS/Remote sensing_AR/VHRI images 2015/20151016-dieba/bayes_confusion.csv')#
+names(conf1)<-c('class','X1','X2','X3','X4','X6','X7')#
+conf1<-as.matrix(conf1[,-1])
+conf1
+conf1<-read.csv('~/Dropbox/GIS/Remote sensing_AR/VHRI images 2015/20151016-dieba/bayes_confusion.csv')#
+names(conf1)<-c('class','X1','X2','X3','X4','X5','X6','X7')#
+conf1<-as.matrix(conf1[,-1])
+conf1
+diag(conf1)
+sum(conf1)
+th1<-sum(diag(conf1))/sum(conf1)
+rowSums(conf1)
+th2<-rowSums(conf1)*colSums(conf1)
+th2
+th2<-sum(rowSums(conf1)*colSums(conf1))
+th2<-sum(rowSums(conf1)*colSums(conf1))/(sum(conf1))^2
+th2
+kap<-(th1-th2)/(1-th2)
+kap
+conf2<-read.csv('~/Dropbox/GIS/Remote sensing_AR/VHRI images 2015/20151016-sibirila/bayesconf.csv')
+conf2
+names(conf2)<-c(names(conf1),'X8','X9')
+conf2
+names(conf2)<-c('class','X1','X2','X3','X4','X5','X6','X7','X8','X9')
+names(conf2)<-c('X1','X2','X3','X4','X5','X6','X7','X8','X9')
+conf2
+conf2<-as.matrix(conf2[-1,])
+conf2
+apply(conf2,1,as.numeric)
+th1<-sum(diag(conf2))/sum(conf2)#
+th2<-sum(rowSums(conf2)*colSums(conf2))/(sum(conf2))^2#
+#
+kap<-(th1-th2)/(1-th2)
+th1<-sum(diag(conf2))/sum(conf2)
+conf2<-apply(conf2,1,as.numeric)
+th1<-sum(diag(conf2))/sum(conf2)#
+th2<-sum(rowSums(conf2)*colSums(conf2))/(sum(conf2))^2#
+#
+kap<-(th1-th2)/(1-th2)
+kap
+farms<-read.csv('~/Dropbox/PhD/ch2-data/CMDT base data/bgyf_full.csv')
+ds<-farms[farms$village%in%c('sibirila','dieba'),]#
+herds<-ds[,c('no','village','UBT','bovin','petitrum','anes')]#
+herds$cattle<-herds$bovin*0.742
+nrow(herds)
+nrow(herds[herds$cattle>0,])
+71/114
+install.packages(c('repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'devtools', 'uuid', 'digest'))
+devtools::install_github('IRkernel/IRkernel')
+setwd('~/Dropbox/PhD/ch2-data/Mali ARBES')#
+library(car)#
+library(foreign)#
+meanna<-function(x) mean(x,na.rm=T)#
+sena<-function(x) sqrt(var(x,na.rm=T)/length(x))#
+#
+codes<-read.csv('HH_codes.csv')#
+members_all<-read.dta('Mali ARBES_STATA12/Household_data/section b.dta')#
+members<-members_all[members_all$hhid%in%codes$hhid,]#
+#
+members$active<-NA#
+for(i in 1:nrow(members)){#
+  if (members$b4a[i] <7) members$active[i] = 0#
+  if (members$b4a[i] >=7 & members$b4a<15) members$active[i] = 0.5#
+  if (members$b4a[i]>=15 &members$b4a<65) members$active[i]=1#
+  if (members$b4a[i]>=65) members$active[i]=0.5#
+}#
+#
+hhsize<-ddply(members,.(hhid),nrow)#
+names(hhsize)[2]<-'HH.size'
+warnings()
+members$active<-NA#
+for(i in 1:nrow(members)){#
+  if (members$b4a[i] <7) members$active[i] = 0#
+  if (members$b4a[i] >=7 & members$b4a[i]<15) members$active[i] = 0.5#
+  if (members$b4a[i]>=15 &members$b4a[i]<65) members$active[i]=1#
+  if (members$b4a[i]>=65) members$active[i]=0.5#
+}
+head(members)
+hhsize<-ddply(members,.(hhid),nrow)#
+names(hhsize)[2]<-'HH.size'#
+hhact<-ddply(members,.(hhid),function(df) sum(df$active))
+hhact
+str(nonfood1_7)
+nonfood1_7 = read.dta('/Users/mollenburger/Dropbox/PhD/ch2-data/Mali ARBES/Mali ARBES_STATA12/Household_data/section q1_7days.dta')#
+nonfood1_30 = read.dta('/Users/mollenburger/Dropbox/PhD/ch2-data/Mali ARBES/Mali ARBES_STATA12/Household_data/section q1_30days.dta')#
+nonfood2 = read.dta('/Users/mollenburger/Dropbox/PhD/ch2-data/Mali ARBES/Mali ARBES_STATA12/Household_data/section q2.dta')
+str(nonfood1_7)
+nonfood1_7=nonfood1_7[nonfood1_7$hhid%in%codes$hhid,]
+nonfood1_30=nonfood1_30[nonfood1_30$hhid%in%codes$hhid,]#
+nonfood2=nonfood2[nonfood2$hhid%in%codes$hhid,]
+weekly<-ddply(nonfood1_7,.(hhid),function(df) sum(df$q1_3,na.rm=T))
+str(nonfood1_30)
+str(nonfood2)
+weekly<-ddply(nonfood1_7,.(hhid),function(df) sum(df$q1_3,na.rm=T))#
+monthly<-ddply(nonfood1_30,.(hhid),function(df) sum(df$q1_5,na.rm=T))#
+yearly<-ddply(nonfood2,.(hhid),function(df) sum(df$q2_3,na.rm=T))
+head(monthly)
+head(yearly)
+head(weekly)
+expenses<-hhact
+expenses$weekly  = weekly$V2*365/7
+head(weekly)
+expenses<-hhact
+expenses$weekly  = weekly$V2*365/7
+head(expenses)
+expenses$weekly  = weekly$V1*365/7
+tail(weekly)
+expenses<-codes
+expenses$weekly  = weekly$V1*365/7
+nrow(codes)
+nrow(nonfood1_7)
+nrow(expenses)
+expenses<-merge(hhact,weekly,by='hhid')
+expenses$weekly  = weekly$V1*365/7
+expenses$monthly = monthly$V1*365/30
+expenses$yearly = yearly$V1
+head(expenses)
+expenses<-merge(hhact,weekly[,1],by='hhid')
+expenses<-merge(hhact,weekly,by='hhid')
+expenses$weekly  = weekly$V1*365/7#
+expenses$monthly = monthly$V1*365/30#
+expenses$yearly = yearly$V1
+head(expenses)
+expenses$total = with(expenses, weekly+monthly+yearly)
+head(expenses)
+names(hhact)[2]<-'actives'
+expenses<-merge(hhact,weekly,by='hhid')#
+expenses$weekly  = weekly$V1*365/7#
+expenses$monthly = monthly$V1*365/30#
+expenses$yearly = yearly$V1#
+#
+expenses$total = with(expenses, weekly+monthly+yearly)
+head(expenses)
+expenses$pp = with(expenses, total/actives)
+head(expenses)
+summary(expenses$pp)
+boxplot(expenses$pp)
+summary(expenses$pp)$out
+boxplot(expenses$pp)$out
+min(boxplot(expenses$pp)$out)
+hist(expenses$pp)
+hist(log(expenses$pp))
+boxplot(log(expenses$pp))
+mean(log(expenses$pp))
+exp(11.3)
+mean(expenses$pp[expenses$pp<380000])
+landhist = crops.Landcollector.get_agent_vars_dataframe()
+370992/6
+ownhist = read.csv('owner_history.csv')
+setwd('~/Dropbox/PhD/python/ABMs/CropLand')
+ls
+ls()
+ownhist = read.csv('owner_history.csv')
+head(ownhist)
+draftpr=250000#
+livestockpr=125000
+ownhist[ownhist$wealth>livestockpr,]
+ownhist[ownhist$wealth>livestockpr,c('owner','step','wealth')]
+ownhist[ownhist$wealth>livestockpr,c('owner','Step','wealth')]
+ownhist[,c('owner','step','wealth')]
+ownhist[,c('owner','Step','wealth')]
+?order
+ownhist[order(ownhist$owner),]
+ownhist[order(ownhist$owner),c('owner','Step','wealth')]
+incomes<-ownhist[ownhist$Step==9,c('owner','income')]
+incomes
+incomes<-ownhist[ownhist$Step==9,'income']
+incomes
+incomes<-as.data.frame(ownhist[ownhist$Step==9,'income'])
+incomes
+str(ownhist)
+incomes<-as.character(ownhist[ownhist$Step==9,'income'])
+incomes
+incomes<-as.numeric(as.character(ownhist[ownhist$Step==9,'income']))
+incomes
+incomes<-as.character(ownhist[ownhist$Step==9,'income'])
+incomes<-read.csv('incomes.csv')
+incomes
+wealth = ownhist[order(ownhist$owner),c('owner','Step','wealth')]
+draft = ownhist[order(ownhist$owner),c('owner','Step','draft')]
+draft
+crophist = read.csv('crophist')
+crophist
+crophist = crophist[,-'AgentID']
+crophist = crophist[,!'AgentID',with=FALSE]
+crophist = crophist[,!'AgentID']
+within(crophist, rm('AgentID')]
+within(crophist, rm('AgentID')
+)
+crophist = within(crophist, rm(c('X.1','AgentID')))
+crophist = subset(crophist, select(-c('X.1','AgentID')))
+crophist = read.csv('crophist')
+str(crophist)
+names(crophist)
+crophist = within(crophist, rm('X.1'))
+crophist = within(crophist, rm("AgentID"))
+exown = crops.schedule.agents_by_breed[Owner][5]
+setwd('~/Dropbox/PhD/python/ABMs/CropLand')#
+ownhist = read.csv('owner_history.csv')#
+draftpr=250000#
+livestockpr=125000#
+#
+wealth = ownhist[order(ownhist$owner),c('owner','Step','wealth')]#
+draft = ownhist[order(ownhist$owner),c('owner','Step','draft')]
+draft

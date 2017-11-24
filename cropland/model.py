@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='owner_init.csv', econ_file='econ_init.csv', height=50, width=50, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
+    def __init__(self, config_file='inputs/owner_init.csv', econ_file='inputs/econ_init.csv', height=60, width=70, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
         '''
         Create a new model with the given parameters.
 
@@ -49,10 +49,12 @@ class CropMove(Model):
 
 
         # Create land
-        land_suitability = np.genfromtxt("cropland/suitability.txt")
+        land_suitability = np.genfromtxt("inputs/suitability.csv",delimiter=',')
+        land_feasibility = np.genfromtxt("inputs/feasibility.csv",delimiter=',')
         for _, x, y in self.grid.coord_iter():
             suitability = land_suitability[x, y]
-            land = Land((x, y), self, suitability,feasibility=1)
+            feasibility = land_feasibility[x,y]
+            land = Land((x, y), self, suitability,feasibility)
             self.grid.place_agent(land, (x, y))
             self.schedule.add(land)
 
