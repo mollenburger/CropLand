@@ -15,7 +15,7 @@ from cropland.model import CropMove
 
 %matplotlib inline
 
-crops = CropMove(config_file='owner_init.csv',econ_file='econ_init.csv', height=50, width=50)
+crops = CropMove()
 crops.run_model(step_count=5)
 
 
@@ -23,19 +23,20 @@ landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
 
-ownhist.to_csv('owner_history.csv')
+ownhist.to_csv('outputs/owner_history.csv')
 owners =list(ownhist.loc[4]['owner'])
 incomes = list(ownhist.loc[4]['income'])
-pd.DataFrame(np.array(list(ownhist.loc[4]['income'])),index=ownhist.loc[4]['owner']).to_csv('incomes.csv')
+pd.DataFrame(np.array(list(ownhist.loc[4]['income'])),index=ownhist.loc[4]['owner']).to_csv('outputs/incomes.csv')
 
 
+cphist['X'],cphist['Y'] = zip (*cphist.index.get_level_values(1))
+cstar = cphist.set_index('owner', append=True)
+cstar = cstar.reset_index(1).drop('AgentID',axis=1)
+cstar.to_csv('outputs/crophist.csv')
 
-cphist['X'],cphist['Y'] = zip (*cphist['AgentID'])
-cphist.set_index('owner')
-cphist.to_csv('crophist')
-
-
-
+landhist['X'],landhist['Y'] = zip (*landhist.index.get_level_values(1))
+landhist = landhist.reset_index(1).drop('AgentID',axis=1)
+landhist.to_csv('outputs/landhist.csv')
 
 exown = crops.schedule.agents_by_breed[Owner][5]
 plotages=[]

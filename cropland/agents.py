@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 
 from mesa import Agent
-from heapq import nlargest
-from copy import deepcopy
 
 
 def get_distance(pos_1, pos_2):
@@ -35,12 +33,20 @@ class Land(Agent):
         if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
             self.steps_cult = self.steps_cult + 1
             self.steps_fallow = 0
-            self.potential = self.suitability-0.1*self.steps_cult
+            if self.steps_cult<6:
+                self.potential = self.suitability-0.13*self.steps_cult
+            else:
+                self.potential = 0.2*self.suitability
             self.desirable = self.potential *self.feasibility
         else:
             self.steps_fallow = self.steps_fallow + 1
             self.steps_cult = 0
-            self.potential = self.suitability+self.steps_fallow
+            if self.steps_fallow <3:
+                self.potential = self.suitability+self.steps_fallow*0.4
+            elif self.steps_fallow < 6:
+                self.potential = self.suitability+self.steps_fallow*0.2
+            else:
+                self.potential = self.suitability*1.8
             self.desirable = self.potential *self.feasibility
 
 class CropPlot(Agent):
@@ -137,12 +143,12 @@ class Owner(Agent):
         self.plots.append(newplot)
 
     def move_plots(self, n):
-        plotages=[]
+        plotpot=[]
         for plot in self.plots:
-            plotages.append((plot.plID,plot.get_land(plot.pos).steps_cult))
-        plotages.sort(key=lambda x: x[1],reverse=True)
+            plotpot.append((plot.plID,plot.get_land(plot.pos).desirable))
+        plotpot.sort(key=lambda x: x[1],reverse=True)
         for plot in self.plots:
-            if plot.plID in plotages[:n]:
+            if plot.plID in plotpot[:n]:
                 plot.tomove=True
             else:
                 plot.tomove=False
@@ -193,30 +199,35 @@ class Owner(Agent):
                 self.livestock = self.livestock + 1
                 self.wealth = self.wealth - self.model.livestockprice
         else:
-            print('no livestock purchased: owner' + str(self.owner))
+            print('no livestock purchased: owner ' + str(self.owner))
 
         #define management for each plot
         if self.wealth > mincost:
             avail = self.wealth-mincost
             himgt = []
+            stopcult = []
             for i in range(len(mgt)):
-                if avail>0:
+                if avail<=mincost:
+                    if i > (len(mgt)-2):
+                        stopcult.append(plotmgt.loc[i]['plID'])
+                elif avail>(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost']):
                     himgt.append(plotmgt.loc[i]['plID'])
                     avail = avail-(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost'])
-                else:
-                    avail = avail+(plotmgt.loc[i-1]['hicost']-plotmgt.loc[i-1]['locost'])
-                    del(himgt[len(himgt)-1])
-                    if avail<=0:
-                        avail = avail+(plotmgt.loc[i-2]['hicost']-plotmgt.loc[i-2]['locost'])
-                        del(himgt[len(himgt)-1])
+
             self.wealth = avail
             for plot in self.plots:
                 if plot.plID in himgt:
                     plot.mgt='hi'
                 else:
                     plot.mgt='lo'
+                if plot.plID in stopcult:
+                    self.model.grid._remove_agent(plot.pos,plot)
+                    self.model.schedule.remove(plot)
         else:
-            print('wealth lower than minimum input cost: wealth =' + str(self.wealth) +'owner=' +str(self.owner))
+            print('wealth lower than minimum input cost: wealth = ' + str(self.wealth) +' owner=' +str(self.owner))
+            self.wealth = 0
+            self.livestock = max(self.livestock-1,0)
+
 
 
     # def statusreport(self):

@@ -135,3 +135,11 @@ pickone=deepcopy(rot)
 random.shuffle(pickone)
 pickone[0]
 rot
+
+
+
+
+
+
+land_suitability = np.genfromtxt("inputs/suitability.csv",delimiter=',')
+land_feasibility = np.genfromtxt("inputs/feasibility.csv",delimiter=',')
