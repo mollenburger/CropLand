@@ -8,6 +8,12 @@ nta$Length <-0
 nta$duration<-nta$Year-min(nta$Year)+1
 nta$phase<-ifelse(nta$Year<1980,1,2)
 
+nta1<-nta[nta$phase==1,]
+qplot(duration,Yield,data=nta1)+facet_grid(Crop~Treatment)+geom_smooth(method='lm')
+
+ntayr = dlply(nta1,.(Crop,Treatment), function(df) lm(Yield~duration,data=df))
+plot(ntayr[[1]])
+llply(ntayr,summary)
 iita<-read.xls('Fallow_yield.xls',sheet=2)
 
 it<-melt(iita, id.vars=c('System','Length'))

@@ -1,5 +1,5 @@
 '''
-moving crop plot model based on Sugarscape Constant Growback Mesa example
+moving crop plot model (loosely based on Sugarscape Constant Growback Mesa example)
 '''
 
 import random
@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='inputs/owner_init.csv', econ_file='inputs/econ_init.csv', height=60, width=70, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
+    def __init__(self, config_file='inputs/owner_init.csv', econ_file='inputs/econ_init.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
         '''
         Create a new model with the given parameters.
 
@@ -44,7 +44,7 @@ class CropMove(Model):
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
-        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
+        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability})
         self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"plots":lambda a:len(a.plots),"wealth":lambda a:a.wealth,"income":lambda a:a.income,"draft":lambda a:a.draft,"livestock":lambda a:a.livestock})
 
 
@@ -76,7 +76,7 @@ class CropMove(Model):
             #Create CropPlots for each owner:
                 # place on owner pos then move
                 plotowner = owneragent.owner
-                plID = str(plotowner)+"-"+str(j)
+                plID = j
                 crop = self.defaultrot[random.randint(0,(len(self.defaultrot)-1))]
                 croppl = CropPlot(owneragent.pos,self,crop,plotowner,plID)
                 owneragent.plots.append(croppl)
@@ -92,6 +92,7 @@ class CropMove(Model):
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
         self.Ownercollector.collect(self)
+        print(self.schedule.time)
         # if self.verbose:
         #     print([self.schedule.time,
         #            self.schedule.get_breed_count(CropPlot)])

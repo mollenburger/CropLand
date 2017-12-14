@@ -24,6 +24,10 @@ Owners are placed at random, and their CropPlots are placed in an area surroundi
   - potential
     - A function of suitability and steps_cult/steps_fallow. Right now either suitability (if cultivated) or suitability+steps_fallow if fallow--to be updated
 
+-History effects:
+  - N'Tarla controls decline -0.035 t/yr; IITA 0.13 t/yr--split the difference for 0.08 t/yr
+
+
 Methods:
   - step
     - update steps_cult, steps_fallow, potential

@@ -20,7 +20,7 @@ def get_distance(pos_1, pos_2):
     return math.sqrt(dx ** 2 + dy ** 2)
 
 class Land(Agent):
-    def __init__(self, pos, model, suitability, feasibility, steps_cult=0, steps_fallow=5):
+    def __init__(self, pos, model, suitability, feasibility, steps_cult=0, steps_fallow=3):
         super().__init__(pos, model)
         self.suitability = suitability
         self.feasibility = feasibility
@@ -29,22 +29,32 @@ class Land(Agent):
         self.potential = self.suitability+self.steps_fallow #magnitudes
         self.desirable = self.potential*self.feasibility
 
+
+    def getmgt(self, pos):
+        this_cell = self.model.grid.get_cell_list_contents([pos])
+        for agent in this_cell:
+            if type(agent) is CropPlot:
+                return agent.mgt
+
+
     def step(self):
         if len(self.model.grid.get_cell_list_contents([self.pos]))>1:
             self.steps_cult = self.steps_cult + 1
             self.steps_fallow = 0
-            if self.steps_cult<6:
-                self.potential = self.suitability-0.13*self.steps_cult
-            else:
-                self.potential = 0.2*self.suitability
+            mgt = self.getmgt
+            if mgt == 'lo':
+                if self.steps_cult<6:
+                    self.potential = self.potential - 0.1*self.steps_cult
+                else:
+                    self.potential = 0.4*self.suitability
             self.desirable = self.potential *self.feasibility
         else:
             self.steps_fallow = self.steps_fallow + 1
             self.steps_cult = 0
             if self.steps_fallow <3:
-                self.potential = self.suitability+self.steps_fallow*0.4
+                self.potential = self.potential+self.steps_fallow*0.2
             elif self.steps_fallow < 6:
-                self.potential = self.suitability+self.steps_fallow*0.2
+                self.potential = self.suitability+0.6+(self.steps_fallow-3)*0.1
             else:
                 self.potential = self.suitability*1.8
             self.desirable = self.potential *self.feasibility
@@ -145,10 +155,11 @@ class Owner(Agent):
     def move_plots(self, n):
         plotpot=[]
         for plot in self.plots:
-            plotpot.append((plot.plID,plot.get_land(plot.pos).desirable))
+            plotpot.append((plot.plID,plot.get_land(plot.pos).steps_cult))
         plotpot.sort(key=lambda x: x[1],reverse=True)
+        moveplots = [x[0] for x in plotpot[:n]]
         for plot in self.plots:
-            if plot.plID in plotpot[:n]:
+            if plot.plID in moveplots:
                 plot.tomove=True
             else:
                 plot.tomove=False
@@ -159,6 +170,7 @@ class Owner(Agent):
 
     def step(self):
         self.move() # move the owner themselves
+        #self.plots = self.get_plots()
         #calculate crop income
         plotinc = []
         for plot in self.plots:
@@ -167,14 +179,6 @@ class Owner(Agent):
         self.wealth =self.wealth + sum(plotinc)
         # take out family expenses
         self.wealth = self.wealth - self.expenses*self.hhsize
-        #move/expand--up to 2 ha new cleared land
-        maxplots = np.floor(self.hhsize*0.5+self.draft*2)
-        if len(self.plots)< maxplots:
-            dif=np.floor(maxplots-len(self.plots))
-            self.expand(n=max(dif, 2))
-            self.move_plots(n=int(2-dif))
-        else:
-            self.move_plots(n=2)
         #calculate  crop mgt costs
         mgt=[]
         for plot in self.plots:
@@ -188,46 +192,93 @@ class Owner(Agent):
         plotmgt.sort_values(by='harvest',inplace=True)
         mincost=sum(plotmgt['locost'])
 
-        # calculate available wealth after hh expenses and minimum inputs
-        available = self.wealth - mincost
+        #wealth available to spend on increased land size and livestock:
+        available = self.wealth-mincost
+        #move/expand--up to 2 ha each
+        maxplots = np.floor(self.hhsize*0.5+self.draft*2)
+        nextcost = self.model.econ.loc['C','lo']['cost'] #input costs highest for cotton #GENERALIZE
+        if len(self.plots)< maxplots and available > nextcost: #for >1 new plot per year?
+            dif=np.floor(maxplots-len(self.plots))
+            self.expand(n=max(dif, 2))
+            available = available-nextcost
+            self.move_plots(n=int(2-dif))
+        else:
+            self.move_plots(n=2)
         # buy livestock and draft animals
         if available > self.model.draftprice:
-            self.draft = self.draft + 1
-            self.wealth = self.wealth - self.model.draftprice
+            if self.draft<4:
+                self.draft = self.draft + 1
+                available = available - self.model.draftprice
+            else:
+                rand = random.random()
+                if(rand > 0.8):
+                    self.draft = self.draft+1
+                    available = available - self.model.draftprice
+                if(rand<0.5):
+                    self.livestock = self.livestock+1
+                    available = available - self.model.livestockprice
         elif available > self.model.livestockprice and available < self.model.draftprice:
             if self.draft >2:
                 self.livestock = self.livestock + 1
-                self.wealth = self.wealth - self.model.livestockprice
-        else:
-            print('no livestock purchased: owner ' + str(self.owner))
+                available = available - self.model.livestockprice
+
 
         #define management for each plot
-        if self.wealth > mincost:
-            avail = self.wealth-mincost
-            himgt = []
-            stopcult = []
-            for i in range(len(mgt)):
-                if avail<=mincost:
-                    if i > (len(mgt)-2):
-                        stopcult.append(plotmgt.loc[i]['plID'])
-                elif avail>(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost']):
+        if available <0:
+            print('*******'+str(self.owner)+'*******')
+        himgt = []
+        stopcult = []
+        if available > mincost: #leave yourself a buffer before improving mgt
+            for i in range(len(plotmgt)):
+                if available>(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost']):
                     himgt.append(plotmgt.loc[i]['plID'])
-                    avail = avail-(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost'])
-
-            self.wealth = avail
-            for plot in self.plots:
-                if plot.plID in himgt:
-                    plot.mgt='hi'
-                else:
-                    plot.mgt='lo'
-                if plot.plID in stopcult:
-                    self.model.grid._remove_agent(plot.pos,plot)
-                    self.model.schedule.remove(plot)
+                    available = available-(plotmgt.loc[i]['hicost']-plotmgt.loc[i]['locost'])
         else:
-            print('wealth lower than minimum input cost: wealth = ' + str(self.wealth) +' owner=' +str(self.owner))
-            self.wealth = 0
-            self.livestock = max(self.livestock-1,0)
+            #if you don't have enough money for inputs: sell livestock, draft, reduce area cultivated
+            if(available < 0 and self.livestock>0):
+                deficit = mincost - available
+                need = np.ceil(deficit/self.model.livestockprice)
+                #sell either enough to pay, or as much as you have
+                if need > self.livestock:
+                    self.livestock = 0
+                    available = self.livestock*self.model.livestockprice
+                else:
+                    self.livestock = self.livestock-need
+                    available = available+need*self.model.livestockprice
+                print("owner: "+str(self.owner)+" sells livestock. Now has: "+str(self.livestock))
+            if(available < 0 and self.draft > 2): #if still not enough and have enough draft...
+                print("owner: "+str(self.owner)+" sells draft")
+                deficit = mincost - available
+                need = np.ceil(deficit/self.model.draftprice)
+                if need<self.draft+2:
+                    self.draft = self.draft-need
+                    available = available+need*self.model.draftprice
+                print("owner: "+str(self.owner)+" sells draft. Now has: "+str(self.draft))
+            if(available<0 and len(self.plots)>2):
+                for i in range(len(plotmgt)-2):
+                    if available < 0:
+                        stopcult.append(plotmgt.loc[len(plotmgt)-i-1]['plID'])
+                        available=available+plotmgt.loc[len(plotmgt)-i-1]['locost']
+            if available < 0 and self.draft>0:
+                print("owner: "+str(self.owner)+" sellall draft")
+                self.draft = 0
+                available = available + self.draft*self.model.draftprice
+        self.wealth = available
+        # print('wealth = ' + str(self.wealth) +' owner=' +str(self.owner))
+        # print('owner: '+str(self.owner)+' wealth: '+str(available)+' livestock: '+str(self.livestock)+' draft: '+str(self.draft))
 
+
+        for plot in self.plots:
+            if plot.plID in himgt:
+                plot.mgt='hi'
+            else:
+                plot.mgt='lo'
+            if plot.plID in stopcult:
+                self.model.grid._remove_agent(plot.pos,plot)
+                self.model.schedule.remove(plot)
+                self.plots.remove(plot)
+        if len(stopcult)>0:
+            print('owner '+str(self.owner)+'stops: '+str(len(stopcult))+' has: '+str(len(self.plots)))
 
 
     # def statusreport(self):
