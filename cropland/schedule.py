@@ -46,14 +46,14 @@ class RandomActivationByBreed(RandomActivation):
 
     def step(self, by_breed=True):
         '''
-        Executes the step of each agent breed, one at a time, in random order.
+        Executes the step of each agent breed, one at a time
 
         Args:
             by_breed: If True, run all agents of a single breed before running
                       the next one.
         '''
         if by_breed:
-            for agent_class in self.agents_by_breed:
+            for agent_class in ['Land','CropPlot','TreePlot','Owner']:
                 self.step_breed(agent_class)
             self.steps += 1
             self.time += 1

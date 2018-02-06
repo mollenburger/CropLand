@@ -10,7 +10,7 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land, Owner
+from cropland.agents import CropPlot, Land, Owner, TreePlot
 from cropland.schedule import RandomActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 
@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='inputs/owner_init.csv', econ_file='inputs/econ_init.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
+    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
         '''
         Create a new model with the given parameters.
 
@@ -41,11 +41,13 @@ class CropMove(Model):
         self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
         self.nowners = self.config.shape[0]
         self.econ = pd.read_csv(econ_file,index_col=['crop','mgt'])
+        self.tree = pd.read_csv(tree_file,index_col=['crop','mgt','age'])
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
         self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability})
-        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"plots":lambda a:len(a.plots),"wealth":lambda a:a.wealth,"income":lambda a:a.income,"draft":lambda a:a.draft,"livestock":lambda a:a.livestock})
+        self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
+        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth,"income":lambda a:a.income,"draft":lambda a:a.draft,"livestock":lambda a:a.livestock})
 
 
         # Create land
@@ -78,12 +80,11 @@ class CropMove(Model):
                 plotowner = owneragent.owner
                 plID = j
                 crop = self.defaultrot[random.randint(0,(len(self.defaultrot)-1))]
-                croppl = CropPlot(owneragent.pos,self,crop,plotowner,plID)
-                owneragent.plots.append(croppl)
+                croppl = CropPlot(owneragent.pos,self,plotowner,plID,crop)
+                owneragent.cplots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
                 croppl.move() #can place off-grid?
                 self.schedule.add(croppl)
-
 
         self.running = True
 

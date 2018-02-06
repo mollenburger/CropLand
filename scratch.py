@@ -8,7 +8,7 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land, Owner
+from cropland.agents import CropPlot, Land, Owner, Plot
 from cropland.schedule import RandomActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
@@ -16,14 +16,16 @@ from cropland.model import CropMove
 %matplotlib inline
 
 crops = CropMove()
-crops.run_model(step_count=20)
+crops.run_model(step_count=5)
 
-
+print(crops.schedule.agents_by_breed[Owner][0].cplots)
 
 
 
 for owner in crops.schedule.agents_by_breed[Owner]:
-     print(owner.owner)
+     print(owner.cplots)
+     except()
+
 
 exown = crops.schedule.agents_by_breed[Owner][37]
 
