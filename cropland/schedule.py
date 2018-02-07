@@ -3,12 +3,11 @@ from collections import defaultdict
 
 from mesa.time import RandomActivation
 
-
-class RandomActivationByBreed(RandomActivation):
+\make NonRandomActivation...
+class ActivationByBreed(BaseScheduler):
     '''
     A scheduler which activates each type of agent once per step, in random
     order, with the order reshuffled every step.
-
     This is equivalent to the NetLogo 'ask breed...' and is generally the
     default behavior for an ABM.
 
@@ -62,14 +61,15 @@ class RandomActivationByBreed(RandomActivation):
 
     def step_breed(self, breed):
         '''
-        Shuffle order and run all agents of a given breed.
-        **how to do this by owner??**
+        Run all agents of a given breed--in Owner case run tractor owners first
+        to determine rental capacity available (model-wide total)
 
         Args:
             breed: Class object of the breed to run.
         '''
         agents = self.agents_by_breed[breed]
-        random.shuffle(agents)
+        if breed=='Owner':
+            agents.sort(key=lambda a: a.tract,reverse=True)
         for agent in agents:
             agent.step()
 

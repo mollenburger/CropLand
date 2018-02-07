@@ -20,7 +20,15 @@ crops.run_model(step_count=5)
 
 print(crops.schedule.agents_by_breed[Owner][0].cplots)
 
+student_tuples = [
+        ('john', 'A', 15),
+        ('jane', 'B', 12),
+        ('dave', 'B', 10),
+        ('jim', 'B', 10),
+        ('dale', 'B', 10),
+]
 
+sorted(student_tuples, key=lambda student: student[1])
 
 for owner in crops.schedule.agents_by_breed[Owner]:
      print(owner.cplots)

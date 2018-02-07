@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G']):
+    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, labor_cost=30000):
         '''
         Create a new model with the given parameters.
 
@@ -38,6 +38,9 @@ class CropMove(Model):
         self.draftprice = draftprice
         self.livestockprice = livestockprice
         self.defaultrot = defaultrot
+        self.tract = tract
+        self.tractcost = pd.read_csv(tractfile,index_col='type')
+        self.rent = rent #ha of draft available for rent
         self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
         self.nowners = self.config.shape[0]
         self.econ = pd.read_csv(econ_file,index_col=['crop','mgt'])
@@ -89,6 +92,7 @@ class CropMove(Model):
         self.running = True
 
     def step(self):
+        self.rentcap=0
         self.schedule.step()
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
