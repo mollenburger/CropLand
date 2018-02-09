@@ -10,8 +10,8 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land, Owner, TreePlot
-from cropland.schedule import RandomActivationByBreed
+from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
+from cropland.schedule import ActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 
 class CropMove(Model):
@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, labor_cost=30000):
+    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, laborcost=30000):
         '''
         Create a new model with the given parameters.
 
@@ -40,12 +40,13 @@ class CropMove(Model):
         self.defaultrot = defaultrot
         self.tract = tract
         self.tractcost = pd.read_csv(tractfile,index_col='type')
-        self.rent = rent #ha of draft available for rent
+        self.rentcap = rentcap #ha of draft available for rent
+        self.laborcost = laborcost
         self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
         self.nowners = self.config.shape[0]
         self.econ = pd.read_csv(econ_file,index_col=['crop','mgt'])
         self.tree = pd.read_csv(tree_file,index_col=['crop','mgt','age'])
-        self.schedule = RandomActivationByBreed(self)
+        self.schedule = ActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
         self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability})
@@ -74,20 +75,32 @@ class CropMove(Model):
             draft = self.config[i,4]
             livestock = self.config[i,5]
             expenses = self.config[i,6]
-            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock,expenses)
+            trees = self.config[i,7]
+            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock,expenses,trees)
             self.grid.place_agent(owneragent,(x,y))
             self.schedule.add(owneragent)
             for j in range(nplots):
             #Create CropPlots for each owner:
-                # place on owner pos then move
+                # place near owner pos then move
                 plotowner = owneragent.owner
                 plID = j
                 crop = self.defaultrot[random.randint(0,(len(self.defaultrot)-1))]
+                # cpx = x+random.randrange(-1*owneragent.vision,owneragent.vision)
+                # cpy = y+random.randrange(-1*owneragent.vision,owneragent.vision)
                 croppl = CropPlot(owneragent.pos,self,plotowner,plID,crop)
                 owneragent.cplots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
-                croppl.move() #can place off-grid?
+                croppl.move() #move to best pos'n near owner
                 self.schedule.add(croppl)
+            for k in range(trees):
+                plotowner=owneragent.owner
+                plID=k
+                treepl = TreePlot(owneragent.pos,self,plotowner,plID)
+                owneragent.trees.append(treepl)
+                self.grid.place_agent(treepl,(x,y))
+                treepl.move()
+                self.schedule.add(treepl)
+
 
         self.running = True
 

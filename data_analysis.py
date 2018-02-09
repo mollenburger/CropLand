@@ -8,8 +8,8 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from cropland.agents import CropPlot, Land, Owner
-from cropland.schedule import RandomActivationByBreed
+from cropland.agents import CropPlot, Land, Owner, Plot, TreePlot
+from cropland.schedule import ActivationByBreed
 from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
 
@@ -49,7 +49,37 @@ landhist.to_csv('outputs/landhist.csv')
 
 
 
+owners = crops.schedule.agents_by_breed[Owner]
+#cropplots = crops.schedule.agents_by_breed[CropPlot]
 
+testown.trees
+testown=owners[0]
+testown.step()
+print(testown.cplots)
+
+test2=owners[2]
+test2.cplots
+
+
+cplots = []
+allcrops = test2.model.schedule.agents_by_breed[CropPlot]
+try:
+    for agent in allcrops:
+        if agent.owner == test2.owner:
+            cplots.append(agent)
+            print('added one!')
+except AttributeError:
+    print("no plots???")
+
+cplots
+
+
+testown.cplots[0].rot
+
+
+
+owners.sort(key=lambda a:a.tract)
+owners
 
 exown = crops.schedule.agents_by_breed[Owner][37]
 exown.owner

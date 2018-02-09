@@ -1,9 +1,8 @@
 import random
 from collections import defaultdict
 
-from mesa.time import RandomActivation
+from mesa.time import BaseScheduler
 
-\make NonRandomActivation...
 class ActivationByBreed(BaseScheduler):
     '''
     A scheduler which activates each type of agent once per step, in random
@@ -52,7 +51,7 @@ class ActivationByBreed(BaseScheduler):
                       the next one.
         '''
         if by_breed:
-            for agent_class in ['Land','CropPlot','TreePlot','Owner']:
+            for agent_class in self.agents_by_breed:
                 self.step_breed(agent_class)
             self.steps += 1
             self.time += 1
@@ -68,8 +67,6 @@ class ActivationByBreed(BaseScheduler):
             breed: Class object of the breed to run.
         '''
         agents = self.agents_by_breed[breed]
-        if breed=='Owner':
-            agents.sort(key=lambda a: a.tract,reverse=True)
         for agent in agents:
             agent.step()
 

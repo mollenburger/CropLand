@@ -1,22 +1,88 @@
-import random
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from mesa import Model
-from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
-
-from cropland.agents import CropPlot, Land, Owner, Plot
-from cropland.schedule import RandomActivationByBreed
-from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
+from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 
 %matplotlib inline
 
 crops = CropMove()
 crops.run_model(step_count=5)
+owners = crops.schedule.agents_by_breed[Owner]
+allplots = owners[0].get_crops().append(owners[0].get_trees())
+print(owners[0].get_trees())
+
+
+testown=crops.schedule.agents_by_breed[Owner][0]
+
+testown.cplots
+testown.get_crops()
+
+
+testown.harvest
+
+
+testpl=testown.cplots
+testpl
+plotharv=[]
+for plot in testpl:
+    plotharv.append((plot.crop,plot.harvest))
+
+
+plotharv
+from collections import defaultdict
+from collections import Counter
+
+harvest= Counter()
+for key, value in plotharv:
+    harvest[key] += value
+harvest
+
+
+
+harvest['M']
+
+
+
+
+len(testpl)
+
+print(testown.get_crops())
+
+cplots=[]
+for agent in testown.model.schedule.agents_by_breed[CropPlot]:
+    if agent.owner==testown.owner:
+        cplots.append(agent)
+
+cplots
+
+testpl=testown.cplots[0]
+testpl.harvest
+testpl.step()
+
+testown.step()
+
+
+test2=owners[8]
+allplots=test2.cplots
+plotinc = []
+for plot in allplots:
+    plotinc.append(plot.GM)
+
+plotinc
+
+test2.econ
+test2pl=test2.cplots[0]
+test2pl.step()
+test2pl.harvest
+
+print(test2.get_crops())
+test2.cplots
+cplots=[]
+allcrops = test2.model.schedule.agents_by_breed[CropPlot]
+for agent in allcrops:
+    if agent.owner == test2.owner:
+        cplots.append(agent)
+cplots
+
+
 
 print(crops.schedule.agents_by_breed[Owner][0].cplots)
 
