@@ -4,14 +4,41 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 %matplotlib inline
 
 crops = CropMove()
-crops.run_model(step_count=5)
-owners = crops.schedule.agents_by_breed[Owner]
-allplots = owners[0].get_crops().append(owners[0].get_trees())
-print(owners[0].get_trees())
+crops.run_model(step_count=20)
 
+[(plot.plID,plot.tomove) for plot in crops.schedule.agents_by_breed[CropPlot]]
+
+sum([own.hhsize for own in crops.schedule.agents_by_breed[Owner]])
+
+
+len(crops.schedule.agents_by_breed[Owner])
+crops.schedule.time
+
+for plot in crops.schedule.agents_by_breed[CropPlot]:
+    print(str(plot.owner)+" "+str(plot.plID)+" "+ str(plot.get_land(plot.pos).steps_cult))
+
+
+[ty for ty in crops.schedule.agents_by_breed]
+tr=crops.schedule.agents_by_breed[TreePlot][0]
+tr.model.tree.loc[(tr.crop,tr.mgt,tr.age)]
+
+
+owners = crops.schedule.agents_by_breed[Owner]
+for i in owners:
+    print(str(i.owner)+" "+str(len(i.trees)))
+for i in owners:
+    print(str(i.owner)+" "+str(i.newtrees))
+
+
+treecost=owners[0].model.tree.loc['cashew','fp',0]['cost']
+for i in owners:
+    print(str(i.owner)+" "+str(i.wealth/treecost)+" "+str(len(i.cplots)))
+max(2,3,5)
 
 testown=crops.schedule.agents_by_breed[Owner][0]
 
+testown.trees
+testown.cplots
 testown.cplots
 testown.get_crops()
 

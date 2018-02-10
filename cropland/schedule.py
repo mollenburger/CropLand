@@ -2,6 +2,7 @@ import random
 from collections import defaultdict
 
 from mesa.time import BaseScheduler
+from cropland.agents import Land, Owner, TreePlot, CropPlot
 
 class ActivationByBreed(BaseScheduler):
     '''
@@ -51,7 +52,7 @@ class ActivationByBreed(BaseScheduler):
                       the next one.
         '''
         if by_breed:
-            for agent_class in self.agents_by_breed:
+            for agent_class in [Land,TreePlot,CropPlot,Owner]:
                 self.step_breed(agent_class)
             self.steps += 1
             self.time += 1

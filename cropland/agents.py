@@ -121,14 +121,16 @@ class CropPlot(Plot):
 
 
     def step(self):
-        crop_land = self.get_land(self.pos)
-        yields = self.get_owner().econ.loc[(self.crop,self.mgt)]
-        self.crop = self.rot[(self.rot.index(self.crop)+1)%len(self.rot)] #next crop in the rotation
-        self.harvest = crop_land.potential*yields['harvest']
-        self.GM = self.harvest*yields['price']-yields['cost']
         if self.tomove==True:
             self.move()
             self.tomove = False
+        #rotate to next crop
+        self.crop = self.rot[(self.rot.index(self.crop)+1)%len(self.rot)]
+        crop_land = self.get_land(self.pos) #get land attributes at pos
+        yields = self.get_owner().econ.loc[(self.crop,self.mgt)]
+        self.harvest = crop_land.potential*yields['harvest'] #calculate yields
+        self.GM = self.harvest*yields['price']-yields['cost']  #calculate GM
+
 
 class TreePlot(Plot):
     def __init__(self,pos,model,owner,plID,crop='cashew',harvest=0,GM=0,mgt='fp',age=0,tomove=False):
@@ -164,7 +166,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses,trees,vision=10,tract=0,tractype='MaliTract',livpref=0.6,treepref=0.3):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, livpref=0.6, treepref=0.3, vision=10,tract=0,tractype='MaliTract'):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -172,17 +174,17 @@ class Owner(Agent):
         self.draft = draft
         self.livestock = livestock
         self.expenses = expenses
+        self.livpref=livpref
+        self.treepref=treepref
+        self.vision = vision
+        self.tract = tract
+        self.tractype = tractype
+        self.tractcost=self.model.tractcost.loc[tractype]
         self.econ = self.model.econ
         self.cplots = []
         self.trees = []
         self.income = []
         self.harvest = {}
-        self.vision = vision
-        self.tract = tract
-        self.tractype = tractype
-        self.livpref=livpref
-        self.treepref=treepref
-        self.tractcost=self.model.tractcost.loc[tractype]
         self.plotages = []
 
     def move(self):
@@ -225,16 +227,9 @@ class Owner(Agent):
         self.cplots.append(newplot)
 
     def move_cplots(self, n):
-        self.plotages=[]
-        shaded=[]
-        for plot in self.cplots:
-            if plot.tomove==True:
-                shaded.append(plot.plID)
-        for plot in self.cplots:
-            if plot.tomove == False: #disregard plots moving bc trees have shaded
-                self.plotages.append((plot.plID,plot.get_land(plot.pos).steps_cult))
+        self.plotages=[(plot.plID,plot.get_land(plot.pos).steps_cult) for plot in self.cplots]
         self.plotages.sort(key=lambda x: x[1],reverse=True)
-        moveplots = [x[0] for x in self.plotages[:int((n-len(shaded)))]]
+        moveplots = [x[0] for x in self.plotages[:int(n)]]
         for plot in self.cplots:
             if plot.plID in moveplots:
                 plot.tomove=True
@@ -268,16 +263,16 @@ class Owner(Agent):
                 if len(self.trees) == 0:
                     newtrees = 1
                 elif len(self.trees) < 5:
-                        newtrees=max(2,wealth_trees)
+                        newtrees=np.floor(max(2,wealth_trees, len(self.cplots)/2))
                 else:
                     excess=len(self.cplots)/3-self.hhsize/4
                     #hhsize/4 is enough maize plots to produce 250kg/person at 1T/ha (generalize)
                     #1/3 of plots on average are maize...
-                    newtrees = max(wealth_trees,excess/2)
+                    newtrees = np.floor(max(wealth_trees,excess/2,len(self.cplots)/2))
                     #plant trees up to half of "extra" land
         #create "newtrees" # of TreePlots
         if newtrees > 0:
-            treeplots=[x[0] for x in self.plotages[:newtrees]] #first (n) plots, not up to index (n)
+            treeplots=[x[0] for x in self.plotages[:int(newtrees)]] #first (n) plots, not up to index (n)
             for plot in self.cplots:
                 if plot.plID in treeplots:
                     newID=len(self.trees)+1
@@ -317,7 +312,6 @@ class Owner(Agent):
         global available
         global maxplots
         global mincost
-        global plotages
         global plotmgt
 ##########calculate harvest and income from this year###########
         self.cplots = self.get_crops()
@@ -336,12 +330,17 @@ class Owner(Agent):
                 self.harvest[entry[0]]=self.harvest[entry[0]]+entry[1]
             else:
                 self.harvest[entry[0]]=entry[1]
-        # take out family expenses
+        # add'l hh member?
+        rand = random.random()
+        if rand<0.02: #endogenous growth rate
+            self.hhsize +=1
+        # subtract family expenses from wealth
         self.wealth = self.wealth - self.expenses*self.hhsize
 ##########plan for next year################
         self.move() # move the owner themselves
-        #calculate minimum crop mgt costs
+        #calculate minimum crop mgt costs and available wealth for investment
         self.mgt_costs()
+        available=self.wealth-mincost
         #number of mature treeplots (without crops underneath)--count as 1/3 toward maxplots
         matrees = []
         if len(self.trees)>0:
@@ -349,8 +348,15 @@ class Owner(Agent):
                 if plot.age>3:
                     matrees.append(plot)
         # how many plots move per year (*****CULTIVATION PERIOD BEFORE FALLOW*****)
-        available=self.wealth-mincost
-        fallow=np.floor(len(self.cplots)/10) #10% rotates each year, for 10yr cultivation period before fallow
+        if(len(self.cplots))>=10:
+            fallow=np.floor(len(self.cplots)/10)
+        else:
+            rand=random.random()
+            if rand<len(self.cplots)/10:
+                fallow=1
+            else:
+                fallow=0
+             #10% rotates each year, for 10yr cultivation period before fallow, for
         nextcost = self.model.econ.loc['C','lo']['cost'] #input costs for new field (highest for cotton)
         #rotate/fallow plots and expand if sufficient draft/money/rental services
         if self.tract == 0:
@@ -398,16 +404,25 @@ class Owner(Agent):
                     self.move_cplots(n=fallow)
                     rental_cap=tract_cap-tractplots
                     available = available-mincost-(len(self.cplots)*opcost)
-                self.model.rentcap=self.model.rentcap+rental_cap
-                self.model.rentprice=self.tractcost['price_rent']
             else:
-                self.own_draft()
-                self.model.rentcap=self.model.rentcap+tract_cap
+                maxplots = self.draftplots()-len(matrees)/3-2*fallow
+                self.move_cplots(n=fallow)
+                if len(self.cplots)< maxplots:
+                    if available > nextcost:
+                        draft_clear=np.floor((maxplots-len(self.cplots))/2)
+                        #number of new plots that can be cleared: new clearance counts *2 toward maxplots
+                        wealth_avail=np.floor(available/nextcost)
+                        dif = min(draft_clear,wealth_avail) #whichever constraint is most limiting
+                        self.expand(n=dif)
+                        available = available-nextcost*dif
+                rental_cap = tract_cap
+            self.model.rentcap += rental_cap
+            self.model.rentprice=self.tractcost['price_rent']
 #
 ###########investments: tractors, draft animals, livestock, trees#################
 #
         #can sell up to 1/4 of livestock herd to purchase tractor (?)
-        if available+0.25*self.livestock*self.model.livestockprice > self.tractcost['upfront']:
+        if available+0.25*self.livestock*self.model.livestockprice > self.tractcost['upfront']*1.1:
             if self.tract==0:
                 self.tract=1
                 available = available-self.tractcost['upfront']
@@ -419,15 +434,14 @@ class Owner(Agent):
                 if rand>self.treepref:
                     self.treeplant()
         else:
-            treerand=random.random()
-            if treerand>self.treepref:
+            rand=random.random()
+            if rand>self.treepref:
                 if available>self.model.tree.loc['cashew','fp',0]['cost']:
                     self.treeplant()
-            livrand=random.random()
-            if livrand >self.livpref:
+            if rand >self.livpref:
                 if available>self.model.draftprice:
-                    rand=random.random()
-                    if rand > 0.8:
+                    rand2=random.random()
+                    if rand2 > 0.8:
                         self.buy_draft()
                     else:
                         self.buy_livestock()
@@ -461,7 +475,7 @@ class Owner(Agent):
                 print("owner: "+str(self.owner)+" sells draft")
                 deficit = mincost - available
                 need = np.ceil(deficit/self.model.draftprice)
-                if need<self.draft+2:
+                if need<self.draft-2:
                     self.draft = self.draft-need
                     available = available+need*self.model.draftprice
                 print("owner: "+str(self.owner)+" sells draft. Now has: "+str(self.draft))
@@ -471,11 +485,10 @@ class Owner(Agent):
                     if available < 0:
                         stopcult.append(plotmgt.loc[len(plotmgt)-i-1]['plID'])
                         available=available+plotmgt.loc[len(plotmgt)-i-1]['locost']
-            if available < 0 and self.draft>0: #if all else fails sell draft
+            if available < 0 and self.draft>=1: #if all else fails sell draft
                 print("owner: "+str(self.owner)+" sellall draft")
                 self.draft = 0
                 available = available + self.draft*self.model.draftprice
-        self.wealth = available
         #print('wealth = ' + str(self.wealth) +' owner=' +str(self.owner))
         # print('owner: '+str(self.owner)+' wealth: '+str(available)+' livestock: '+str(self.livestock)+' draft: '+str(self.draft))
 ### UPDATE CROP MANAGEMENT BASED ON MGT DECISIONS
@@ -490,7 +503,9 @@ class Owner(Agent):
                 self.cplots.remove(plot)
         if len(stopcult)>0:
             print('owner '+str(self.owner)+'stops: '+str(len(stopcult))+' has: '+str(len(self.cplots)))
-
+## update wealth and get tractor rental income (assume all capacity is rented--if not here then elsewhere)
+        available = available + rental_cap*self.model.rentprice
+        self.wealth = available
 
 
     # def statusreport(self):

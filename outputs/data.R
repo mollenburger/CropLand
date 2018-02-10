@@ -53,10 +53,7 @@ plotmgt$pct<-plotmgt$himgt/plotmgt$all
 dcast(plotmgt,Step~owner,value.var='pct')
 
 dcast(plotmgt,Step~owner,value.var='all')
-
-
-
-
+qplot(Step,harvest,data=cphist[cphist$owner==11,],color=crop)+facet_grid(plID~.)
 
 landhist = read.csv('landhist.csv')
 lplot<-landhist[landhist$Step %in% c(3,6,9,12,15,19),]

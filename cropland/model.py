@@ -91,6 +91,7 @@ class CropMove(Model):
                 owneragent.cplots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
                 croppl.move() #move to best pos'n near owner
+                croppl.get_land(croppl.pos).steps_cult=random.randrange(10)
                 self.schedule.add(croppl)
             for k in range(trees):
                 plotowner=owneragent.owner
@@ -106,6 +107,31 @@ class CropMove(Model):
 
     def step(self):
         self.rentcap=0
+        #every 2nd step add one migrant Owner
+        if self.schedule.time%2==0:
+            x = random.randrange(self.width)
+            y = random.randrange(self.height)
+            owner = len(self.schedule.agents_by_breed[Owner])+1
+            nplots = 1
+            hhsize = 6
+            expenses = self.schedule.agents_by_breed[Owner][0].expenses
+            wealth = hhsize*expenses*1.4
+            trees = 0
+            draft = 0
+            livestock = 0
+            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock, expenses,trees)
+            self.grid.place_agent(owneragent,(x,y))
+            self.schedule.add(owneragent)
+            plotowner = owneragent.owner
+            plID = 0
+            crop = self.defaultrot[random.randint(0,(len(self.defaultrot)-1))]
+            # cpx = x+random.randrange(-1*owneragent.vision,owneragent.vision)
+            # cpy = y+random.randrange(-1*owneragent.vision,owneragent.vision)
+            croppl = CropPlot(owneragent.pos,self,plotowner,plID,crop)
+            owneragent.cplots.append(croppl)
+            self.grid.place_agent(croppl,(x,y))
+            croppl.move() #move to best pos'n near owner
+            self.schedule.add(croppl)
         self.schedule.step()
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
