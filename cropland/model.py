@@ -21,7 +21,7 @@ class CropMove(Model):
 
     #verbose = True  # Print-monitoring
 
-    def __init__(self, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', height=84, width=113, draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, laborcost=30000):
+    def __init__(self, height=84, width=113, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, laborcost=30000):
         '''
         Create a new model with the given parameters.
 

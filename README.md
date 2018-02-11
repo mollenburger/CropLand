@@ -2,12 +2,18 @@
 ABM of land use change built with [Mesa](https://github.com/projectmesa/mesa)
 
 # Summary
-There are three types of agents: Land, CropPlot, and Owner. Land contains
+This model simulates agricultural and land-use change at the village scale.
+It uses four types of agents: Land, CropPlot, TreePlot, and Owner. Land contains
 location-specific properties and does not move (equivalent to NetLogo "patch").
-Each CropPlot agent represents a 1-ha field, and is linked to an Owner agent,
-who may own several CropPlots.
-Owners are initialized using a config file (.csv) that lists owner ID numbers, the number of CropPlots, draft animals, and livestock they own, the household's population, and their starting wealth.  An economics file (.csv) lists prices, costs, and yields for given crop/management combinations to be modeled. Land agents are initialized based on a text file of suitability scores (e.g. raster).
-Owners are placed at random, and their CropPlots are placed in an area surrounding the owner. At each model step, the harvest on each CropPlot is calculated based on management and crop, as well as Land attributes (suitability, number of steps cultivated or fallow). This yield, along with cost and price information from the model's econ file, is used to calculate the gross margin for that plot. These gross margins are summed for each Owner to calculate that Owner's income (single-step value) and wealth (cumulative). If the Owner has excess land cultivation capacity (based on household size and mechanization level), the  Owner adds up to two additional CropPlots per step. The oldest existing plots may be moved for fallowing. Next, minimum input costs for the upcoming year are calculated for the Owner, and these plus family expenses (based on MARBES averages) are deducted from the Owner's wealth to determine available wealth, which can then be invested in livestock and/or draft. Finally, the remaining wealth is used to implement improved management on a number of plots determined by the available wealth. CropPlots move to the next crop in their rotation, Land patches update their history of cultivation and fallow, and the next step begins.
+Each CropPlot agent represents a 1-ha field, while TreePlot agents represent 1ha of planted tree crops. Both are linked to an Owner agent, who may own several CropPlots and TreePlots.
+
+Owners represent farm households, and can be of arbitrary size. Owners are initialized using a config file (.csv) that lists owner ID numbers, the number of CropPlots and TreePlots, draft animals, and livestock they own, the household's population, and their starting wealth. Average prices, costs, and yields for given crop/management combinations are read from .csv input files. Land agents are initialized based on a text file of suitability scores, which is extracted from a raster file.
+
+At the start of the model period, Owners are placed at random, and their CropPlots and TreePlots are placed in an area surrounding the owner. At each model step, the harvest on each CropPlot and TreePlot is calculated based on management and crop (as well as age of trees in the case of TreePlots). This is influenced by attributes of the Land agent occupying the same position, including (suitability, number of steps cultivated or fallow). This yield is used to calculate the gross margin for that plot. All plot gross margins are summed for each Owner to calculate that Owner's income (single-step value) and wealth (cumulative). If the Owner has excess land cultivation capacity (based on household size and mechanization level), they may be able to add CropPlots.  CropPlots may coexist with TreePlots until the TreePlots reach 3 years of age, at which point the shade they produce makes crop production difficult and the CropPlot is removed or moved. In addition, the oldest existing plots may be moved to leave land fallow. Next, minimum input costs for the upcoming year are calculated for the Owner, and these plus family expenses (based on averages reported in the Mali Africa Rising Baseline Survey) are deducted from the Owner's wealth to determine _available_ wealth, which can then be invested. Investments can include tractors, livestock, draft, and trees. Farmers without draft animals prioritize those, and only farmers producing surplus staple food crops will convert land to tree plantations, to ensure their family's food self-sufficiency. Tractors, once purchased, may be used to increase an Owner's own cultivated area and rented out to other Owner agents. Finally, any remaining wealth is used to implement improved management on a number of plots determined by the available wealth. CropPlots move to the next crop in their rotation, Land patches update their history of cultivation and fallow, and the next step begins.
+
+Population growth, both endogenous growth and growth from migration, take place at the level of the Owners: endogenous growth by a percentage chance to add a household member to a given Owner agent, and migration by introducing a new Owner agent at every second step.
+
+Model outputs include Owner incomes and accumulated wealth, changes in management practices and farm size, land use maps for each step, as well as others as needed.
 
 # Model components
 **Agents**
@@ -162,7 +168,6 @@ Methods:
   - mgt_costs:
     - calculate minimum cost of inputs for current crop area
 
-Note on livestock purchases: This is based on looking at the various datasets and talking with farmers: people here mostly buy draft animals already trained, and the majority of people with 1 or 2 TLUs of livestock have draft animals only (in SEP, CMDT census and ARBES). So people invest in getting their first draft team before buying cattle. Other livestock (goats, chickens, etc.) are considered liquid assets, as they're easily sold when need arises. So they can be considered part of wealth.
 
   - step
     - *Collect current year*
@@ -198,8 +203,6 @@ Note on livestock purchases: This is based on looking at the various datasets an
     - Add rental income from tractor (assumes all capacity is rented for now)
     - set self.wealth = available
 
-
-note on tractors: right now everyone has the same costs, the same rental price, and it's assumed that the full capacity of the tractor is used. (make sure the tractor owners are getting paid)
 
 **CropMove Model**
 *Attributes*
