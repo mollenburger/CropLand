@@ -1,17 +1,8 @@
-import random
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 
-from mesa import Model
-from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
-
-from cropland.agents import CropPlot, Land, Owner, Plot, TreePlot
-from cropland.schedule import ActivationByBreed
-from cropland.subDataCollector import breedDataCollector
 from cropland.model import CropMove
+from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 
 %matplotlib inline
 
@@ -28,7 +19,7 @@ ownhist = crops.Ownercollector.get_agent_vars_dataframe()
 
 # ownhist.to_csv('outputs/owner_history.csv')
 
-
+ownhist.loc[4]
 owners =list(ownhist.loc[4]['owner'])
 incomes = list(ownhist.loc[4]['income'])
 pd.DataFrame(np.array(list(ownhist.loc[4]['income'])),index=ownhist.loc[4]['owner']).to_csv('outputs/incomes.csv')

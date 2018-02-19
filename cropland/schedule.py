@@ -67,7 +67,10 @@ class ActivationByBreed(BaseScheduler):
         Args:
             breed: Class object of the breed to run.
         '''
-        agents = self.agents_by_breed[breed]
+        if breed == Owner:
+            agents= sorted(self.agents_by_breed[Owner], key=lambda a:a.tract, reverse=True)
+        else:
+            agents= self.agents_by_breed[breed]
         for agent in agents:
             agent.step()
 

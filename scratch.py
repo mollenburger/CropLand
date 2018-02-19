@@ -4,12 +4,29 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 %matplotlib inline
 
 crops = CropMove()
-crops.run_model(step_count=20)
+crops.run_model(step_count=22)
+
 
 [(plot.plID,plot.tomove) for plot in crops.schedule.agents_by_breed[CropPlot]]
 
 sum([own.hhsize for own in crops.schedule.agents_by_breed[Owner]])
+type(crops.schedule.agents_by_breed[TreePlot][0])
 
+
+crops.schedule.agents_by_breed[Owner][0].tract
+
+agents = crops.schedule.agents_by_breed[Owner]
+if type(agents[1]) == Owner:
+    print(agents[1].owner)
+else:
+    print('not owners')
+
+owntracts=sorted(agents,key=lambda a: a.tract)
+
+
+
+for agent in crops.schedule.agents:
+    if type(agent)=Owner:
 
 len(crops.schedule.agents_by_breed[Owner])
 crops.schedule.time
