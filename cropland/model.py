@@ -1,7 +1,3 @@
-'''
-moving crop plot model (loosely based on Sugarscape Constant Growback Mesa example)
-'''
-
 import random
 import numpy as np
 import pandas as pd
@@ -16,10 +12,8 @@ from cropland.subDataCollector import breedDataCollector
 
 class CropMove(Model):
     '''
-    CropPlots move based on time cultivated
+    Land use and cropping systems model
     '''
-
-    #verbose = True  # Print-monitoring
 
     def __init__(self, height=92, width=110, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rented=0, rentpct=0, laborcost=30000):
         '''
@@ -51,7 +45,7 @@ class CropMove(Model):
         self.schedule = ActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
-        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability})
+        self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability,"steps_fallow":lambda a:a.get_land(a.pos).steps_fallow})
         self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
         self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "tract":lambda a:a.tract, "rent":lambda a: a.rentout})
         self.Modelcollector = DataCollector(model_reporters = {"rentcap": lambda m: m.rentcap, "rented": lambda m: m.rented})
@@ -63,7 +57,8 @@ class CropMove(Model):
         for _, x, y in self.grid.coord_iter():
             suitability = land_suitability[x, y]
             feasibility = land_feasibility[x,y]
-            land = Land((x, y), self, suitability,feasibility)
+            fallow = random.randrange(10)
+            land = Land((x, y), self, suitability,feasibility,steps_fallow=fallow)
             self.grid.place_agent(land, (x, y))
             self.schedule.add(land)
 
@@ -107,10 +102,11 @@ class CropMove(Model):
         self.running = True
 
     def step(self):
+        #keep pct of capacity used last year as rentpct--for rental earnings
         if self.rented == 0:
-            0
+            self.rencpct = 0
         else:
-            self.rentuse=self.rentcap/self.rented
+            self.rentpct=self.rentcap/self.rented
         #reset rental capacity
         self.rentcap=0
         self.rented=0
@@ -145,6 +141,7 @@ class CropMove(Model):
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
         self.Ownercollector.collect(self)
+        self.Modelcollector.collect(self)
         print(self.schedule.time)
         # if self.verbose:
         #     print([self.schedule.time,

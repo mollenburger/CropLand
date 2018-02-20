@@ -17,7 +17,7 @@ owner<-0:(nrow(sibinit)-1)
 liv=floor(sibinit$bovin)
 plots=floor(sibinit$suptot)
 expenses=rep(94970,times=nrow(sibinit))
-wealth=min(32000*sibinit$poptot,250000) #~1/3 yearly expenses
+wealth=10000*plots
 trees=c(1, rep(0,times=(nrow(sibinit)-1)))
 own_init<-data.frame(owner,plots,wealth,sibinit$poptot,sibinit$bdelab,liv,expenses,trees)
 
@@ -34,7 +34,7 @@ lomarg<-1600*92-53660
 himarg<-2500*92-72435
 
 
-94970/3
+94970/2
 
 qplot(wealth,geom='histogram',bins=10)
 summary(wealth)
