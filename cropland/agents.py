@@ -295,7 +295,6 @@ class Owner(Agent):
         #create "newtrees" # of TreePlots
         if newtrees > 0: # cant be over half of crop plots
             treeplots=[x[0] for x in self.plotages[:int(newtrees)]] #first (n) plots, not up to
-            print("owner "+str(self.owner)+" plants "+str(len(treeplots))+" trees")
             for plot in self.cplots:
                 if plot.plID in treeplots:
                     newID=len(self.trees)+1
@@ -304,7 +303,7 @@ class Owner(Agent):
                     self.model.grid.place_agent(newtree,plot.pos)
                     self.model.schedule.add(newtree)
             available = available - treecost*newtrees
-            print("owner "+str(self.owner)+" plants "+str(newtrees)+" trees")
+            # print("owner "+str(self.owner)+" plants "+str(newtrees)+" trees")
 
 
     def buy_draft(self):
@@ -373,15 +372,10 @@ class Owner(Agent):
         self.move() # move the owner themselves
         #calculate minimum crop mgt costs and available wealth for investment
         self.mgt_costs()
-<<<<<<< HEAD
         #returns global *mincost* and *self.plotmgt* with next year's costs/expected harvest
         #define 'available wealth' that can be used
         available=self.wealth
         #number of mature treeplots (without crops underneath)--count as 1/3 toward draftplots
-=======
-        available=self.wealth
-        #number of mature treeplots (without crops underneath)--count as 1/3 toward maxplots
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
         matrees = []
         if len(self.trees)>0:
             for plot in self.trees:
@@ -397,32 +391,19 @@ class Owner(Agent):
             else:
                 fallow=0
              #10% rotates each year, for 10yr cultivation period before fallow, for
-<<<<<<< HEAD
         inputcost = self.model.econ.loc['C','lo']['cost'] #input costs for a NEW field
         draftplots = self.draftplots()-len(matrees)/3-2*fallow #total plots cultivable with draft animals: draftplots returns draft capacity, subtract trees and fallowing needs
         #rotate/fallow plots and expand if sufficient draft/money/rental services
         if self.tract == 0:
             available = self.wealth-mincost #what you need to maintain current area
             if len(self.cplots)< draftplots:
-=======
-        inputcost = self.model.econ.loc['C','lo']['cost'] #input costs for a new field (highest for cotton)
-        maxplots = self.draftplots()-len(matrees)/3-2*fallow #total plots cultivable with draft animals
-        #rotate/fallow plots and expand if sufficient draft/money/rental services
-        if self.tract == 0:
-            available = self.wealth-mincost #what you need to maintain current area
-            if len(self.cplots)< maxplots:
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
                 if available > inputcost:
                     draft_clear=np.floor((draftplots-len(self.cplots))/2)
                     #number of new plots that can be cleared: new clearance counts *2 toward draftplots
                     wealth_avail=np.floor(available/inputcost) #no. plots can afford to buy inputs for
                     dif = min(draft_clear,wealth_avail) #whichever constraint is most limiting
                     self.expand(n=dif)
-<<<<<<< HEAD
                     available = available-inputcost*dif #subtract costs for new plots
-=======
-                    available = available-inputcost*dif
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
             elif self.model.rentcap > 0: #if rental is available, use once own draft limit exceeded
                 if available>inputcost+self.model.rentprice: #and you can afford it...
                     newplots=min(np.floor(available/(inputcost+self.model.rentprice)),self.model.rentcap)
@@ -433,7 +414,6 @@ class Owner(Agent):
                     available = available - newplots*(self.model.rentprice+inputcost)
             self.move_cplots(n=fallow) #move fallowed plots always
         else: # have tractor
-<<<<<<< HEAD
             # get rental earnings, subtract yearly payment (from last year)
             # total plots potentially rented out last year
             lastrent = self.rentout
@@ -445,12 +425,6 @@ class Owner(Agent):
             #^^ half capacity because travel time, marketing, etc.
             totrent = lastrent*(rentpct+0.5*(1-rentpct))
             rentearn=self.tractcost['price_rent']*totrent
-=======
-            # get rental earnings, subtract yearly payment
-            #if demand limited in village then can take 1/2 draft cap elsewhere, earnings based on plots rented last year
-            lastrent = self.rentout #how many plots rented out last year
-            rentearn=self.tractcost['price_rent']*lastrent*(max(self.model.rentpct+0.5,1))
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
             #add rental income, subtract loan payment
             available = available + rentearn - self.tractcost['payment']
             #how many ha can you afford to plow?
@@ -464,20 +438,11 @@ class Owner(Agent):
                 #how many plots can you afford to hire people to weed?
                 plots_hire=np.floor((available-costs_fam)/(inputcost+opcost+self.model.laborcost))
                 cost_lim=np.floor(1.5*self.hhsize+plots_hire)
-<<<<<<< HEAD
             tractplots=np.floor(min(cost_lim,tract_cap))
             #minimum of cost limit and capacity limit is no. of tractored plots
             #**[rental minimum fraction?????]**
             #what can you do with tractors plus your draft animals
             plotstot = tractplots+draftplots #draftplots is calculated with animals only
-=======
-            #what's the tractor's capacity limitation?
-            tract_cap=self.tractcost['capacity']
-            tractplots=np.floor(min(cost_lim,tract_cap)) #minimum of cost limit and capacity limit is no. of tractored plots
-            #**[rental minimum fraction?????]**
-            #what can you do with tractors plus your draft animals
-            plotstot = tractplots+maxplots #maxplots calculated with draft animals
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
             if tractplots>0:
                 if len(self.cplots) < plotstot:
                     newplots = np.floor((plotstot-len(self.cplots))/2) #new plots harder to clear...
@@ -490,7 +455,6 @@ class Owner(Agent):
                 else:
                     self.move_cplots(n=fallow)
                     self.rentout=tract_cap-tractplots
-<<<<<<< HEAD
                     available = available-mincost-(len(self.plotmgt)*opcost)
             else: #no tractplots - can't afford
                 if len(self.cplots) - draftplots > 1:
@@ -512,33 +476,10 @@ class Owner(Agent):
                 self.rentout = tract_cap
             self.model.rentcap += self.rentout
             self.model.rentprice = self.tractcost['price_rent']
-=======
-                    available = available-mincost-(len(self.cplots)*opcost)
-            else:
-                if len(self.cplots)-maxplots > 0:
-                    for i in range(int(np.floor(len(self.cplots)-maxplots))):
-                        stopcult.append(plotmgt.loc[len(plotmgt)-i-1]['plID'])
-                    available = available - inputcost * maxplots
-                    #stopcult to maxplots
-                else: # len(self.cplots)<= maxplots
-                    available = available - mincost #cover costs for all existing plots
-                    if available > inputcost:
-                        draft_clear = np.floor((maxplots-len(self.cplots))/2)
-                        #number of new plots that can be cleared: new clearance counts *2 toward maxplots
-                        wealth_avail=np.floor(available/inputcost)
-                        dif = min(draft_clear,wealth_avail) #whichever constraint is most limiting
-                        self.expand(n=dif)
-                        available = available-inputcost*dif
-                    self.move_cplots(n=fallow)
-                self.rentout = tract_cap
-            self.model.rentcap += self.rentout
-            self.model.rentprice=self.tractcost['price_rent']
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
 
 #
 ###########investments: tractors, draft animals, livestock, trees#################
 #
-<<<<<<< HEAD
         # can sell up to 1/4 of livestock herd to purchase tractor (?) must have 'safety margin'
         # base on avg wealth irt min expenses in last 3 years > upfront cost*buffer
         if self.draft>2:
@@ -554,10 +495,6 @@ class Owner(Agent):
         toinvest = movavg(self.wealthlist,3) #based on 3 yr moving avg wealth
          #can sell up to 1/4 of herd
         if toinvest + inv > self.tractcost['upfront']*1.2:
-=======
-        #can sell up to 1/4 of livestock herd to purchase tractor (?)
-        if available+0.25*self.livestock*self.model.livestockprice > self.tractcost['upfront']*1.5:
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
             if self.tract < 1:
                 self.tract = 1
                 available = available - self.tractcost['upfront']
@@ -585,20 +522,21 @@ class Owner(Agent):
                         available = available - self.model.draftprice
                     else:
                         self.buy_livestock()
+                        available = available - self.model.livestockprice
                 elif toinvest>self.model.livestockprice:
                     self.buy_livestock()
+                    available = available - self.model.livestockprice
 #
 ###########define management for each plot###########
         himgt = []
         stopcult = []
-<<<<<<< HEAD
         if available > mincost:
         # increase to hi mgt for as many plots as possible, in descending order of
         # harvest amt last year
             available = available-mincost
             for i in range(len(self.plotmgt)):
                 extra = self.plotmgt.loc[i]['hicost'] - self.plotmgt.loc[i]['locost'] #extra cost for hi mgt
-                if available > extra:
+                if available > extra*1.5:
                     himgt.append(self.plotmgt.loc[i]['plID'])
                     available = available - extra
         else:
@@ -608,22 +546,6 @@ class Owner(Agent):
             deficit = mincost - available
             livsell = np.ceil(deficit/self.model.livestockprice)
             # sell either enough to pay, or as much as you have
-=======
-        if available > mincost: #leave yourself a buffer before improving mgt
-        #increase to hi mgt for as many plots as possible, in descending order of harvest amt last year
-            available = available-mincost
-            for i in range(len(plotmgt)):
-                extra = plotmgt.loc[i]['hicost'] - plotmgt.loc[i]['locost'] #extra cost for hi mgt
-                if available > extra:
-                    himgt.append(plotmgt.loc[i]['plID'])
-                    available = available - extra
-        else:
-            #if you don't have enough money for minimum inputs: sell livestock, draft, reduce area cultivated
-            #prioritize retaining at least 2 draft animals and at least 1 plot
-            deficit = mincost - available
-            livsell = np.ceil(deficit/self.model.livestockprice)
-            #sell either enough to pay, or as much as you have
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
             if livsell < self.livestock:
                 self.livestock = self.livestock - livsell
                 available = available + livsell*self.model.livestockprice
@@ -631,27 +553,18 @@ class Owner(Agent):
             else:
                 self.livestock = 0
                 available = available + self.livestock*self.model.livestockprice
-<<<<<<< HEAD
                 if available < mincost: #have to sell more assets
                     if self.draft > 2: #if at least one draft team, sell draft
-=======
-                if available < mincost:
-                    if self.draft > 2: #if still not enough and have at least one draft team...
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
                         drsell = np.ceil(deficit/self.model.draftprice)
                         if drsell < self.draft-2:
                             self.draft = self.draft-drsell
                             available = available+drsell*self.model.draftprice
-<<<<<<< HEAD
                             #try to keep a full team
-=======
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
                             #print("owner: "+str(self.owner)+" sells draft. Now has: "+str(self.draft))
                         else:
                             if self.tract>0: #if you can't keep up loan payments you lose the tractor
                                 self.tract = self.tract-1
                                 available = mincost
-<<<<<<< HEAD
                                 # assumes you get enough for the tractor to cover input costs
                             else:
                                 # if 2 or fewer draft and sufficient food, stop cultivating before
@@ -664,17 +577,6 @@ class Owner(Agent):
                                             stopcult.append(self.plotmgt.loc[len(self.plotmgt)-i-1]['plID'])
                                             available=available+self.plotmgt.loc[len(self.plotmgt)-i-1] ['locost']
                                 else: # if all else fails sell draft
-=======
-                            else:
-                                #if 2 or fewer draft and sufficient food, stop cultivating before selling draft (equivalent to lower-than-low mgt)
-                                excess=max(np.floor(len(self.cplots)/3-self.hhsize/4),0)
-                                if excess > 0:
-                                    for i in range(int(np.floor(len(plotmgt)-excess))):
-                                        if available < mincost:
-                                            stopcult.append(plotmgt.loc[len(plotmgt)-i-1]['plID'])
-                                            available=available+plotmgt.loc[len(plotmgt)-i-1] ['locost']
-                                else:
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
                                     draft = max(0,self.draft-drsell)
                                     available = available + draft*self.model.draftprice
                                     self.draft=draft

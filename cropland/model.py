@@ -158,3 +158,5 @@ class CropMove(Model):
         print('')
         print('Final number CropPlots: ',
               self.schedule.get_breed_count(CropPlot))
+        print('')
+        print('Final number TreePlots: ', self.schedule.get_breed_count(TreePlot))

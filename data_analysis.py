@@ -12,15 +12,10 @@ crops.run_model(step_count=20)
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
-<<<<<<< HEAD
 #modelhist = crops.Modelcollector.get_model_vars_dataframe()
-=======
-modelhist = crops.Modelcollector.get_agent_vars_dataframe()
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
 
 # ownhist.to_csv('outputs/owner_history.csv')
 
-ownhist.loc[4]
 owners =list(ownhist.loc[4]['owner'])
 incomes = list(ownhist.loc[4]['income'])
 pd.DataFrame(np.array(list(ownhist.loc[4]['income'])),index=ownhist.loc[4]['owner']).to_csv('outputs/incomes.csv')
@@ -38,10 +33,7 @@ cstar.to_csv('outputs/crophist.csv')
 landhist['X'],landhist['Y'] = zip (*landhist.index.get_level_values(1))
 landhist = landhist.reset_index(1).drop('AgentID',axis=1)
 landhist.to_csv('outputs/landhist.csv')
-<<<<<<< HEAD
 
-modelhist['X'],modelhist['Y'] = zip (*modelhist.index.get_level_values(1))
-modelhist = modelhist.reset_index(1).drop('AgentID',axis=1)
-modelhist.to_csv('outputs/modelhist.csv')
-=======
->>>>>>> 7f3509a42b5560b9ef2df28c0737c44d7d86c284
+# modelhist['X'],modelhist['Y'] = zip (*modelhist.index.get_level_values(1))
+# modelhist = modelhist.reset_index(1).drop('AgentID',axis=1)
+# modelhist.to_csv('outputs/modelhist.csv')
