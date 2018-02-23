@@ -184,7 +184,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, livpref=0.6, treepref=0.3, vision=10,tract=0,tractype='MaliTract',rentout=0,rentin=0):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, livpref=0.6, treepref=0.1, vision=10,tract=0,tractype='MaliTract',rentout=0,rentin=0):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -204,7 +204,7 @@ class Owner(Agent):
         self.cplots = []
         self.trees = []
         self.wealthlist = [self.wealth]
-        self.income = []
+        self.income = 0
         self.harvest = {}
         self.plotages = []
         self.plotmgt = []
@@ -342,7 +342,7 @@ class Owner(Agent):
         plotinc = []
         for plot in allplots:
             plotinc.append(plot.GM)
-        self.income.append(sum(plotinc))
+        self.income = sum(plotinc)
         self.wealth = self.wealth + sum(plotinc)
         plotharv = []
         for plot in self.cplots:
@@ -482,63 +482,67 @@ class Owner(Agent):
 #
         # can sell up to 1/4 of livestock herd to purchase tractor (?) must have 'safety margin'
         # base on avg wealth irt min expenses in last 3 years > upfront cost*buffer
-        if self.draft>2:
-            if self.livestock < 40:
-                inv = np.floor(0.25*self.livestock)*self.model.livestockprice
-                self.livestock = self.livestock - np.floor(0.25*self.livestock)
-            else:
-                inv = 10*self.model.livestockprice
-                self.livestock = self.livestock - 10
-        else:
+
+        if self.livestock == 0:
+            livsell = 0
             inv = 0
-        available = available - inv
+        elif self.livestock < 40:
+            livsell = np.floor(0.25*self.livestock)
+            inv = livsell*self.model.livestockprice
+        else:
+            livsell = 10
+            inv = 10*self.model.livestockprice
         toinvest = movavg(self.wealthlist,3) #based on 3 yr moving avg wealth
          #can sell up to 1/4 of herd
         if toinvest + inv > self.tractcost['upfront']*1.2:
-            if self.tract < 1:
-                self.tract = 1
-                available = available - self.tractcost['upfront']
-                print("owner "+str(self.owner)+" buys tractor")
-                print(str(toinvest/1000000))
+            available = available - inv
+            self.livestock = self.livestock - livsell
+            self.tract += 1
+            available = available - self.tractcost['upfront']
+            print("owner "+str(self.owner)+" buys tractor")
+            print(str(toinvest/1000000))
+            print(self.tract)
         elif self.draft<4:
             if toinvest > self.model.draftprice*1.2: #20% 'safety margin'
                 self.buy_draft()
-                available = available - self.model.draftprice
             elif toinvest > self.model.tree.loc['cashew','fp',0]['cost']:
                 rand = random.random()
                 if rand>self.treepref:
                     self.treeplant()
-                    #available updates in treeplant()
+                    #available updates in treeplant() and buy_X()
         else:
             rand=random.random()
             if rand>self.treepref:
-                if toinvest>self.model.tree.loc['cashew','fp',0]['cost']:
-                    self.treeplant()
+                if available > self.model.tree.loc['cashew','fp',0]['cost']:
+                    if toinvest>self.model.tree.loc['cashew','fp',0]['cost']:
+                        self.treeplant()
             if rand >self.livpref:
-                if toinvest>self.model.draftprice:
-                    rand2=random.random()
-                    if rand2 > 0.8:
-                        self.buy_draft()
-                        available = available - self.model.draftprice
-                    else:
+                if available > self.model.draftprice:
+                    if toinvest > self.model.draftprice:
+                        rand2=random.random()
+                        if rand2 > 0.8:
+                            self.buy_draft()
+                        else:
+                            self.buy_livestock()
+                    elif toinvest>self.model.livestockprice:
                         self.buy_livestock()
-                        available = available - self.model.livestockprice
-                elif toinvest>self.model.livestockprice:
-                    self.buy_livestock()
-                    available = available - self.model.livestockprice
 #
 ###########define management for each plot###########
         himgt = []
         stopcult = []
         if available > mincost:
+            if toinvest > mincost: #damping
         # increase to hi mgt for as many plots as possible, in descending order of
         # harvest amt last year
-            available = available-mincost
-            for i in range(len(self.plotmgt)):
-                extra = self.plotmgt.loc[i]['hicost'] - self.plotmgt.loc[i]['locost'] #extra cost for hi mgt
-                if available > extra*1.5:
-                    himgt.append(self.plotmgt.loc[i]['plID'])
-                    available = available - extra
+                available = available-mincost
+                for i in range(len(self.plotmgt)):
+                    extra = self.plotmgt.loc[i]['hicost'] - self.plotmgt.loc[i]['locost'] #extra cost for hi mgt
+                    if available > extra*1.5:
+                        himgt.append(self.plotmgt.loc[i]['plID'])
+                        available = available - extra
+            else:
+                himgt = []
+                stopcult = []
         else:
             # if you don't have enough money for minimum inputs: sell livestock, draft,
             # reduce area cultivated
