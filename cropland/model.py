@@ -15,7 +15,7 @@ class CropMove(Model):
     Land use and cropping systems model
     '''
 
-    def __init__(self, height=92, width=110, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rented=0, rentpct=0, laborcost=30000):
+    def __init__(self, height=92, width=110, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rentin=0, rentout= 0, rentpct=0, laborcost=30000):
         '''
         Create a new model with the given parameters.
 
@@ -34,8 +34,9 @@ class CropMove(Model):
         self.defaultrot = defaultrot
         self.tract = tract
         self.tractcost = pd.read_csv(tractfile,index_col='type')
-        self.rentcap = rentcap #ha of draft available for rent
-        self.rented = rented
+        self.rentin = rentin
+        self.rentout = rentout
+        self.rentcap = self.rentout #available to rent, updates within step
         self.rentpct = rentpct
         self.laborcost = laborcost
         self.config = np.genfromtxt(config_file,dtype=int,delimiter=',',skip_header=1)
@@ -46,10 +47,9 @@ class CropMove(Model):
         self.grid = MultiGrid(self.height, self.width, torus=False)
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
         self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability,"steps_fallow":lambda a:a.get_land(a.pos).steps_fallow})
-        self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
-        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "tract":lambda a:a.tract, "rentout":lambda a: a.rentout, "rentin":lambda a: a.rentin})
-        self.Modelcollector = DataCollector(model_reporters = {"rentcap": lambda m: m.rentcap, "rented": lambda m: m.rented})
-
+        self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "age":lambda a:a.age, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
+        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth,"expenses": lambda a:a.expenses, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "tract":lambda a:a.tract, "rentout":lambda a: a.rentout, "rentin":lambda a: a.rentin, "full": lambda a:a.full})
+        self.Modelcollector = DataCollector(model_reporters = {"rentout": lambda m: m.rentout, "rentin": lambda m: m.rentin})
 
         # Create land
         land_suitability = np.genfromtxt("inputs/suitability.csv",delimiter=',')
@@ -64,8 +64,8 @@ class CropMove(Model):
 
         #Create Owner agents:
         for i in range(self.nowners):
-            x = random.randrange(self.width)
-            y = random.randrange(self.height)
+            x = random.randrange(20, self.width-20)
+            y = random.randrange(20, self.height-20)
             owner = i
             nplots = self.config[i,1]
             wealth = self.config[i,2]
@@ -103,13 +103,14 @@ class CropMove(Model):
 
     def step(self):
         #keep pct of capacity used last year as rentpct--for rental earnings
-        if self.rented == 0:
-            self.rencpct = 0
+        if self.rentout == 0:
+            self.rentpct = 0
         else:
-            self.rentpct=self.rentcap/self.rented
+            self.rentpct=self.rentin/self.rentout
         #reset rental capacity
-        self.rentcap=0
-        self.rented=0
+        self.rentcap = 0
+        self.rentin = 0
+        self.rentout = 0
         #every 2nd step add one migrant Owner
         if self.schedule.time%2==0:
             x = random.randrange(self.width)
@@ -140,6 +141,7 @@ class CropMove(Model):
             #Owners with tractors, Owners without tractors
         self.Landcollector.collect(self)
         self.CropPlotcollector.collect(self)
+        self.TreePlotcollector.collect(self)
         self.Ownercollector.collect(self)
         self.Modelcollector.collect(self)
         print(self.schedule.time)
@@ -158,3 +160,6 @@ class CropMove(Model):
         print('')
         print('Final number CropPlots: ',
               self.schedule.get_breed_count(CropPlot))
+        print('')
+        print('Final number TreePlots: ', self.schedule.get_breed_count(TreePlot))
+        print('')
