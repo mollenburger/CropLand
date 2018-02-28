@@ -124,10 +124,7 @@ class Plot(Agent):
         except ValueError:
             self.model.grid._remove_agent(self.pos,self)
             self.model.schedule.remove(self)
-<<<<<<< HEAD
-=======
-            self.owner.full +=1
->>>>>>> 435bbddb65143359f8eab750e2685ab7afa0c4a9
+            self.owner.full+=1
             print(str(self.owner)+' could not move plot '+str(self.plID))
         #can move to where someone else already was?
 
@@ -221,10 +218,7 @@ class Owner(Agent):
         self.harvest = {}
         self.plotmgt = []
         self.payoff = []
-<<<<<<< HEAD
-=======
-        self.full = 0 #how many plots couldn't move and were deleted/replaced
->>>>>>> 435bbddb65143359f8eab750e2685ab7afa0c4a9
+        self.full = 0
 
     def move(self):
         try:
@@ -458,11 +452,7 @@ class Owner(Agent):
                     else: #if draft limited,
                         # try to rent tractor
                         if self.model.rentcap > 0: #if you can rent more plots, do that
-<<<<<<< HEAD
                             available = available - inputcost*draft_clear #pay for those plots
-=======
-                            available = available - inputcost*draft_clear #pay for expansion with own draft
->>>>>>> 435bbddb65143359f8eab750e2685ab7afa0c4a9
                             #if you can afford to rent...do that
                             tractplots = max(0, min(np.floor(available/ ((inputcost+self.model.rentprice)*1.5)), self.model.rentcap))
                             available = available - tractplots*(inputcost+self.model.rentprice)
@@ -508,12 +498,6 @@ class Owner(Agent):
                 #^^ half capacity because travel time, marketing, etc.
                 rented = lastrent*(rentpct+0.5*(1-rentpct))
                 rentearn=self.tractcost['price_rent']*rented
-<<<<<<< HEAD
-                for i in 1:tract :
-                    pa
-                #add rental income, subtract loan payment
-                available = available + rentearn - self.tractcost['payment']*self.tract
-=======
                 for i in range(0,self.tract-1) :
                     self.payoff[i] = self.payoff[i]-1
                     if self.payoff[i]<0:
@@ -525,7 +509,6 @@ class Owner(Agent):
                     pass
                 #add rental income, subtract loan payment
                 available = available + rentearn - self.tractcost['payment']*len(self.payoff)
->>>>>>> 435bbddb65143359f8eab750e2685ab7afa0c4a9
                 #how many ha can you afford to plow?
                 opcost = self.tractcost['owncost'] #cost of operation
                 cost_lim = available/(inputcost+opcost) #plots possible (w/o labor cost, low input)
