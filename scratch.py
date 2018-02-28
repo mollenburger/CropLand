@@ -6,6 +6,23 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 crops = CropMove()
 crops.run_model(step_count=22)
 
+owners = crops.schedule.agents_by_breed[Owner]
+
+own2 = sorted(owners, key=lambda a:a.tract, reverse=True)
+own2
+
+
+for owner in own2:
+    owner.step()
+
+
+    owners = crops.schedule.agents_by_breed[Owner]
+for owner in owners:
+    print(owner.tract)
+
+payoff
+payoff.remove(0)
+
 
 [(plot.plID,plot.tomove) for plot in crops.schedule.agents_by_breed[CropPlot]]
 
