@@ -15,7 +15,7 @@ class CropMove(Model):
     Land use and cropping systems model
     '''
 
-    def __init__(self, height=92, width=110, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rentin=0, rentout= 0, rentpct=0, laborcost=30000):
+    def __init__(self, height=92, width=110, config_file='inputs/old_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rentin=0, rentout= 0, rentpct=0, laborcost=30000):
         '''
         Create a new model with the given parameters.
 
@@ -48,8 +48,8 @@ class CropMove(Model):
         self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
         self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability,"steps_fallow":lambda a:a.get_land(a.pos).steps_fallow})
         self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "age":lambda a:a.age, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
-        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth,"expenses": lambda a:a.expenses, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "tract":lambda a:a.tract, "rentout":lambda a: a.rentout, "rentin":lambda a: a.rentin, "full": lambda a:a.full})
-        self.Modelcollector = DataCollector(model_reporters = {"rentout": lambda m: m.rentout, "rentin": lambda m: m.rentin})
+        self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth,"expenses": lambda a:a.expenses, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "full": lambda a:a.full})
+        # self.Modelcollector = DataCollector(model_reporters = {"rentout": lambda m: m.rentout, "rentin": lambda m: m.rentin})
 
         # Create land
         land_suitability = np.genfromtxt("inputs/suitability.csv",delimiter=',')
@@ -89,6 +89,8 @@ class CropMove(Model):
                 owneragent.cplots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
                 croppl.move() #move to best pos'n near owner
+                while croppl.get_land(croppl.pos).potential == 0:
+                    croppl.move()
                 croppl.get_land(croppl.pos).steps_cult=random.randrange(10)
                 self.schedule.add(croppl)
             for k in range(trees):
@@ -143,8 +145,8 @@ class CropMove(Model):
         self.CropPlotcollector.collect(self)
         self.TreePlotcollector.collect(self)
         self.Ownercollector.collect(self)
-        self.Modelcollector.collect(self)
-        print(self.schedule.time)
+        # self.Modelcollector.collect(self)
+        print("**end step "+str(self.schedule.time)+" **")
         # if self.verbose:
         #     print([self.schedule.time,
         #            self.schedule.get_breed_count(CropPlot)])
