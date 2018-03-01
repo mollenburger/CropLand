@@ -4,7 +4,12 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 %matplotlib inline
 
 crops = CropMove()
-crops.run_model(step_count=22)
+crops.run_model(step_count=27)
+
+
+
+
+
 
 owners = crops.schedule.agents_by_breed[Owner]
 

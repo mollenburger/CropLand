@@ -9,14 +9,14 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 
 random.seed(15)
 crops = CropMove()
-crops.run_model(step_count=20)
+crops.run_model(step_count=22)
 
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()
 cphist = crops.CropPlotcollector.get_agent_vars_dataframe()
 trhist = crops.TreePlotcollector.get_agent_vars_dataframe()
 ownhist = crops.Ownercollector.get_agent_vars_dataframe()
-modelhist = crops.Modelcollector.get_model_vars_dataframe()
+# modelhist = crops.Modelcollector.get_model_vars_dataframe()
 
 
 ownhist['X'],ownhist['Y'] = zip (*ownhist.index.get_level_values(1))
@@ -38,9 +38,9 @@ landhist['X'],landhist['Y'] = zip (*landhist.index.get_level_values(1))
 landhist = landhist.reset_index(1).drop('AgentID',axis=1)
 landhist.to_csv('outputs/landhist.csv')
 
-modelhist.to_csv('outputs/modelhist.csv')
-
-# exown = crops.schedule.agents_by_breed[Owner][3]
+# modelhist.to_csv('outputs/modelhist.csv')
+exown = crops.schedule.agents_by_breed[Owner][3]
+exown.livpref
 #
 # exown.plotmgt
 #
