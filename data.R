@@ -7,7 +7,11 @@ head(ownhist)
 #
 #
 #
+<<<<<<< HEAD
 qplot(Step,wealth,data=ownhist,geom='path',color=factor(owner))
+=======
+ qplot(Step,wealth,data=ownhist[ownhist$owner<10,],geom='path',color=factor(owner))
+>>>>>>> c3c81e345bcdfc39c01d8e19b069084130753b85
 #
 #
 ownhist[ownhist$owner==2,]
@@ -28,12 +32,17 @@ popgrow
 
 
 cphist = read.csv('crophist.csv')
+<<<<<<< HEAD
 head(cphist)
 ownharvest=ddply(cphist,.(Step,crop,owner),function(df) sum(df$harvest))
 names(ownharvest)[4] = "harvest"
 ownh = dcast(ownharvest,Step+owner~crop, value.var="harvest")
 
 food = merge(ownhist,ownh,by=c("Step",'owner'),all = T)
+=======
+
+head(cphist)
+>>>>>>> c3c81e345bcdfc39c01d8e19b069084130753b85
 
 food$mzpercap = food$M/food$hhsize
 food[food$mzpercap<250,]
@@ -50,7 +59,11 @@ qplot(Step,GM,data=cphist)+facet_grid(crop~mgt)+geom_smooth()
 
 plotmgt<-ddply(cphist,.(Step,owner),function(df) return (c (himgt = nrow( df[df$mgt=='hi',]), all=nrow(df))))
 plotmgt$pct<-plotmgt$himgt/plotmgt$all
+<<<<<<< HEAD
 qplot(Step,pct,data=plotmgt)
+=======
+qplot(Step,pct,data=plotmgt[plotmgt$owner==6,])
+>>>>>>> c3c81e345bcdfc39c01d8e19b069084130753b85
 
 
 plotpot<-ddply(cphist,.(Step,owner),function(df) mean(df$pot))
@@ -59,6 +72,7 @@ plotpot[plotpot$owner==2,]
 
 landhist = read.csv('landhist.csv')
 avail = read.csv('../inputs/feasibility.csv')
+sum(avail)*0.05
 
 
 nrow(landhist[landhist$cultivated>0 & landhist$Step==0,])/sum(avail)
