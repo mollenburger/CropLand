@@ -289,7 +289,7 @@ class Owner(Agent):
                     if len(self.trees) == 0:
                         newtrees = 1
                     elif len(self.trees) < 5:
-                        newtrees=max(2,np.floor(constraint))
+                        newtrees=max(5,np.floor(constraint))
                     else:
                         newtrees = np.floor(min(constraint,len(self.cplots)/3))
                     #plant trees up to half of "extra" land
