@@ -9,7 +9,7 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 
 random.seed(15)
 crops = CropMove()
-crops.run_model(step_count=20)
+crops.run_model(step_count=22)
 
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()

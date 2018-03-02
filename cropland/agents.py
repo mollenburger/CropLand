@@ -75,10 +75,10 @@ class Land(Agent):
                 potential = self.potential
                 if self.steps_fallow <= 3:
                     potential = self.suitability*(1+self.steps_fallow*0.05)
-                elif self.steps_fallow < 35:
+                elif self.steps_fallow < 23:
                     potential  = self.suitability*(1.15+ (self.steps_fallow-3)*0.01)
-                elif self.steps_fallow>=35:
-                    potential = self.suitability*1.5
+                elif self.steps_fallow>=23:
+                    potential = self.suitability*1.2
             self.potential = potential
             self.desirable = self.potential*self.feasibility
 
@@ -124,7 +124,7 @@ class Plot(Agent):
         except ValueError:
             self.model.grid._remove_agent(self.pos,self)
             self.model.schedule.remove(self)
-            self.owner.full+=1
+            self.get_owner().full+=1
             print(str(self.owner)+' could not move plot '+str(self.plID))
         #can move to where someone else already was?
 
@@ -194,7 +194,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, livpref=0.6, treepref=0.5, vision=10,tract=0,tractype='MaliTract',rentout=0,rentin=0,minrent=0):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.7, treepref=0.3, vision=10, tract=0, tractype='Unsubs40', rentout=0, rentin=0, minrent=0.5):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -294,11 +294,11 @@ class Owner(Agent):
                 treecost=self.model.tree.loc['cashew','fp',0]['cost']
                 wealth_trees = np.floor(available/(treecost*1.5))
                 constraint = min(excess/2,wealth_trees)
-                if wealth_trees > 0:
+                if constraint > 0:
                     if len(self.trees) == 0:
                         newtrees = 1
                     elif len(self.trees) < 5:
-                        newtrees=max(2,np.floor(constraint))
+                        newtrees=max(5,np.floor(constraint))
                     else:
                         newtrees = np.floor(min(constraint,len(self.cplots)/3))
                     #plant trees up to half of "extra" land
@@ -442,7 +442,7 @@ class Owner(Agent):
             inputcost = self.model.econ.loc['C','lo']['cost'] #input costs for a NEW field
             draftplots = self.draftcap()-len(matrees)/3-2*(fallow+len(treemove)) #total plots cultivable with draft animals: draftcap returns total draft capacity, subtract trees and fallowing/moved from under trees --newcleared plots count x2
             #rotate/fallow plots and expand if sufficient draft/money/rental services
-            if self.tract == 0:
+            if self.tract == 0: #without tractor
                 available = self.wealth-mincost #what you need to maintain current area
                 if available > inputcost*1.5: #if you can afford new plots
                     draft_clear=np.floor((draftplots-len(self.cplots))/2) #number of new plots that can be cleared: new clearance counts *2 toward draftplots
@@ -465,8 +465,8 @@ class Owner(Agent):
                             self.expand(n = newplots)
                             self.move_cplots(n=fallow)
                         else: # no tractors available
-                            if len(self.cplots<draftplots):
-                                self.expand(draft_clear)
+                            if len(self.cplots) < draftplots:
+                                self.expand(draft_clear) #expand to draft capacity
                             else: # if you can't even cultivate the plots you have
                                 maxdraft = self.draftcap()
                                 if len(treemove)> 0:
@@ -495,13 +495,14 @@ class Owner(Agent):
                 # *from previous step*
                 rentpct = self.model.rentpct
                 tract_cap=self.tractcost['capacity']*(1-self.minrent)
+                minrent = self.tractcost['capacity']*self.minrent
                 # tractor's capacity and minimum rent-out fraction limit tractored plots
                 #plots rented in-village = lastrent*rentpct
                 #plots rented outside village = 0.5*lastrent(1-rentpct)
                 #^^ half capacity because travel time, marketing, etc.
                 rented = lastrent*(rentpct+0.5*(1-rentpct))
                 rentearn=self.tractcost['price_rent']*rented
-                for i in range(0,self.tract-1) :
+                for i in range(len(self.payoff)) :
                     self.payoff[i] = self.payoff[i]-1
                     if self.payoff[i]<0:
                         print('payoff negative')
@@ -530,19 +531,21 @@ class Owner(Agent):
                 plotstot = tractplots+draftplots #draftplots is calculated with animals only
                 if tractplots>0:
                     if len(self.cplots) < plotstot:
-                        newplots = np.floor((plotstot-len(self.cplots))/2) #new plots harder to clear so they count double still
+                        newplots = np.floor((plotstot-(len(self.cplots)+fallow))/2) #new plots harder to clear so they count double still
                         self.expand(n=newplots)
                         available = available-mincost-newplots*inputcost-opcost*tractplots
                         self.move_cplots(n=fallow)
-                        self.rentout=tract_cap-tractplots-newplots-fallow
-                        if self.rentout<0:
-                            print('warning: owner '+str(owner)+'rentout is negative')
+                        self.rentout = self.tractcost['capacity']-tractplots-fallow
+                        if self.rentout < 0-self.tract:
+#                            print('warning: owner '+str(self.owner)+'rentout ='+str(self.rentout))
                             self.rentout = 0
                         # tractor capacity after own plots: double-count newplots and fallow
                         # against rental (unless no rental)
                     else:
                         self.move_cplots(n=fallow)
-                        self.rentout=tract_cap-tractplots
+                        self.rentout=self.tractcost['capacity']-tractplots
+#                        if self.rentout < minrent:
+#                            print('warning: owner '+str(self.owner)+'rentout low' + str(minrent-self.rentout))
                         available = available-mincost-(len(self.plotmgt)*opcost)
                 else: #no tractplots - can't afford
                     if len(self.cplots) - draftplots > 0:
@@ -575,20 +578,21 @@ class Owner(Agent):
             if self.livestock == 0:
                 livsell = 0
             else:
-                livsell = min(np.floor(0.5*self.livestock),20)
+                livsell = min(np.floor(0.25*self.livestock),20)
             inv = livsell*self.model.livestockprice
              #can sell up to 1/2 of herd or up to 20 animals to buy tractors
             toinvest = movavg(self.wealthlist,4) #based on 4 yr moving avg wealth
             if toinvest + inv > self.tractcost['upfront']*1.5:
-                if available + inv > mincost+self.tractcost['upfront']*1.5:
-                    available = available - self.tractcost['upfront']
-                    self.livestock = self.livestock - livsell
-                    self.tract += 1
-                    self.payoff.append(self.tractcost['payoff_time'])
-                    self.model.tract += 1
-                    available = available - self.tractcost['upfront']
-                    print("owner "+str(self.owner)+" buys tractor, has "+ str(self.tract))
-                    #available updates in treeplant() and buy_X()
+                if len(self.payoff) < 1: #payoff first tractor before buying another
+                    if available + inv > mincost+self.tractcost['upfront']*1.5:
+                        available = available - self.tractcost['upfront']
+                        self.livestock = self.livestock - livsell
+                        self.tract += 1
+                        self.payoff.append(self.tractcost['payoff_time'])
+                        self.model.tract += 1
+                        available = available - self.tractcost['upfront']
+                        print("owner "+str(self.owner)+" buys tractor, has "+ str(self.tract))
+                        #available updates in treeplant() and buy_X()
             else:
                 if rand < self.treepref:
                     if available > self.model.tree.loc['cashew','fp',0]['cost']*1.5:

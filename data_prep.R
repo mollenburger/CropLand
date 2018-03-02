@@ -1,7 +1,7 @@
 
 
 db<-read.csv('/Users/mollenburger/Dropbox/PhD/python/ABMs/CropLand/inputs/owner_init_db.csv')
-head(db)
+
 
 # qplot(plots,wealth,color=hhsize,data=db)
 # qplot(hhsize,wealth,color=plots,data=db)
@@ -15,7 +15,7 @@ sibinit<-all[all$village=="sibirila",c('poptot','suptot','bdelab','bovin')]
 
 owner<-0:(nrow(sibinit)-1)
 liv=floor(sibinit$bovin)
-plots=ceiling(sibinit$suptot)
+plots=ceiling(sibinit$suptot*1.3)
 expenses=rep(94970,times=nrow(sibinit))
 wealth=10000*plots
 trees=c(1, rep(0,times=(nrow(sibinit)-1)))

@@ -1,6 +1,5 @@
 setwd('~/Dropbox/PhD/python/ABMs/CropLand/outputs')
 ownhist = read.csv('owner_history.csv')
-head(ownhist)
 # qplot(Step,draft,data=ownhist,geom='path')+facet_wrap(~owner)
 #
 # qplot(Step,livestock,data=ownhist,geom='path')+facet_wrap(~owner)
@@ -43,10 +42,10 @@ plotharv<-ddply(cphist,.(Step,crop,mgt),function(df) return(c(avgyld=mean(df$har
 
 
 
-qplot(Step,avgyld,data=plotharv)+facet_grid(crop~mgt)
+qplot(Step,avgyld,data=plotharv)+facet_grid(crop~.)
 
 
-qplot(Step,GM,data=cphist)+facet_grid(crop~mgt)+geom_smooth()
+qplot(Step,pot,data=cphist)+facet_grid(crop~mgt)+geom_smooth()
 
 plotmgt<-ddply(cphist,.(Step,owner),function(df) return (c (himgt = nrow( df[df$mgt=='hi',]), all=nrow(df))))
 plotmgt$pct<-plotmgt$himgt/plotmgt$all
