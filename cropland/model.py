@@ -89,6 +89,8 @@ class CropMove(Model):
                 owneragent.cplots.append(croppl)
                 self.grid.place_agent(croppl,(x,y))
                 croppl.move() #move to best pos'n near owner
+                while croppl.get_land(croppl.pos).potential==0:
+                    croppl.move()
                 croppl.get_land(croppl.pos).steps_cult=random.randrange(10)
                 self.schedule.add(croppl)
             for k in range(trees):
