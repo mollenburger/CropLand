@@ -38,9 +38,7 @@ landhist['X'],landhist['Y'] = zip (*landhist.index.get_level_values(1))
 landhist = landhist.reset_index(1).drop('AgentID',axis=1)
 landhist.to_csv('outputs/landhist.csv')
 
-# modelhist.to_csv('outputs/modelhist.csv')
-exown = crops.schedule.agents_by_breed[Owner][3]
-exown.livpref
+#modelhist.to_csv('outputs/modelhist.csv')
 #
 # exown.plotmgt
 #

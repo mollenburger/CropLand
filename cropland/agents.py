@@ -190,7 +190,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.6, treepref=0.3, vision=10):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.6, treepref=0.8, vision=10):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
