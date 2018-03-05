@@ -124,7 +124,7 @@ class Plot(Agent):
         except ValueError:
             self.model.grid._remove_agent(self.pos,self)
             self.model.schedule.remove(self)
-            self.owner.full+=1
+            self.get_owner().full+=1
             print(str(self.owner)+' could not move plot '+str(self.plID))
         #can move to where someone else already was?
 
@@ -176,7 +176,7 @@ class TreePlot(Plot):
         if self.age<=20:
             yields=self.model.tree.loc[(self.crop,self.mgt,self.age)]
         elif self.age>30:
-            yields=self.model.tree.loc[(self.crop,self.mgt,self.age)]
+            yields=self.model.tree.loc[(self.crop,self.mgt,20)]*(1-(self.age-30)*10)
         else:
             yields=self.model.tree.loc[(self.crop,self.mgt,20)]
         self.harvest = land.potential*yields['harvest']
@@ -190,7 +190,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.6, treepref=0.8, vision=10):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.6, treepref=0.03, vision=10):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -381,7 +381,6 @@ class Owner(Agent):
         available=self.wealth
         #if you're not able to pay for inputs, sell assets
         if self.wealth < mincost:
-            print('oops '+str(self.owner))
             deficit = mincost - available
             livsell = np.ceil(deficit/self.model.livestockprice)
             # sell either enough to pay, or as much as you have
