@@ -45,7 +45,7 @@ class CropMove(Model):
         self.tree = pd.read_csv(tree_file,index_col=['crop','mgt','age'])
         self.schedule = ActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential})
+        self.Landcollector = breedDataCollector(breed=Land, agent_reporters = {"cultivated": lambda a: a.steps_cult,"fallow": lambda a:a.steps_fallow,"potential":lambda a:a.potential, "suitability":lambda a:a.suitability})
         self.CropPlotcollector = breedDataCollector(breed=CropPlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "mgt":lambda a:a.mgt, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM, "pot":lambda a:a.get_land(a.pos).potential,"steps_cult":lambda a:a.get_land(a.pos).steps_cult,"suitability":lambda a:a.get_land(a.pos).suitability,"steps_fallow":lambda a:a.get_land(a.pos).steps_fallow})
         self.TreePlotcollector = breedDataCollector(breed=TreePlot, agent_reporters = {"owner":lambda a:a.owner, "plID":lambda a:a.plID, "crop":lambda a:a.crop, "age":lambda a:a.age, "harvest":lambda a:a.harvest, "GM":lambda a:a.GM})
         self.Ownercollector = breedDataCollector(breed=Owner, agent_reporters = {"owner": lambda a:a.owner,"hhsize": lambda a: a.hhsize,"cplots":lambda a:len(a.cplots),"trees":lambda a:len(a.trees),"wealth":lambda a:a.wealth,"expenses": lambda a:a.expenses, "income":lambda a:a.income,"draft":lambda a:a.draft, "livestock":lambda a: a.livestock, "tract":lambda a:a.tract, "rentout":lambda a: a.rentout, "rentin":lambda a: a.rentin, "full": lambda a:a.full})
@@ -120,12 +120,13 @@ class CropMove(Model):
             owner = len(self.schedule.agents_by_breed[Owner])+1
             nplots = 1
             hhsize = 6
-            expenses = self.schedule.agents_by_breed[Owner][0].expenses
-            wealth = hhsize*expenses*1.4
+            wealth = hhsize*10000
             trees = 0
             draft = 0
             livestock = 0
-            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock, expenses,trees)
+            trees = 0
+            expenses = 6000
+            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock, expenses, trees)
             self.grid.place_agent(owneragent,(x,y))
             self.schedule.add(owneragent)
             plotowner = owneragent.owner
