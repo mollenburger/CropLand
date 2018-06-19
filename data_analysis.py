@@ -7,11 +7,10 @@ from cropland.agents import CropPlot, Land, Owner, TreePlot, Plot
 
 %matplotlib inline
 
-random.seed(15)
-crops = CropMove()
+random.seed(5)
+crops = CropMove(config_file='inputs/dieba_init.csv')
+
 crops.run_model(step_count=22)
-
-
 
 
 landhist = crops.Landcollector.get_agent_vars_dataframe()

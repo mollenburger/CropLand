@@ -1,0 +1,15 @@
+#runtime files and outputs
+__pycache__
+outputs
+
+# Emacs stuff
+*~
+\#*#
+.#*
+
+# Mac stuff
+.DS_Store
+
+#R stuff
+.Rapp.history
+*.rda

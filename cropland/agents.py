@@ -194,7 +194,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.7, treepref=0.8, vision=10, tract=0, tractype='impossible', rentin=0, rentout=0, minrent=0):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.7, treepref=0.03, vision=10, tract=0, tractype='Unsubs40', rentin=0, rentout=0, minrent=0.3):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -342,7 +342,7 @@ class Owner(Agent):
             mgt.append([plID,nextcrop,locost,hicost,harvest])
         mgt.sort(key=lambda x:x[4])
         self.plotmgt=pd.DataFrame(mgt,columns=['plID','crop','locost','hicost','harvest'])
-        mincost=sum(self.plotmgt['locost'])
+        mincost=max(sum(self.plotmgt['locost']),1)
 
 
     def step(self):

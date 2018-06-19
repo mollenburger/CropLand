@@ -15,7 +15,7 @@ class CropMove(Model):
     Land use and cropping systems model
     '''
 
-    def __init__(self, height=92, width=110, config_file='inputs/owner_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rentin=0, rentout= 0, rentpct=0, laborcost=30000):
+    def __init__(self, height=115, width=85, config_file='inputs/dieba_init.csv', econ_file ='inputs/econ_init.csv',tree_file='inputs/tree.csv', draftprice=250000, livestockprice=125000,defaultrot=['C','M','G'],tract=0,tractfile='inputs/tractor_costs.csv',rentcap=0, rentprice=0, rentin=0, rentout= 0, rentpct=0, laborcost=30000):
         '''
         Create a new model with the given parameters.
 
@@ -52,8 +52,8 @@ class CropMove(Model):
         self.Modelcollector = DataCollector(model_reporters = {"rentout": lambda m: m.rentout, "rentin": lambda m: m.rentin})
 
         # Create land
-        land_suitability = np.genfromtxt("inputs/suitability.csv",delimiter=',')
-        land_feasibility = np.genfromtxt("inputs/feasibility.csv",delimiter=',')
+        land_suitability = np.genfromtxt("inputs/db_suitability.csv",delimiter=',')
+        land_feasibility = np.genfromtxt("inputs/db_feasibility.csv",delimiter=',')
         for _, x, y in self.grid.coord_iter():
             suitability = land_suitability[x, y]
             feasibility = land_feasibility[x,y]
@@ -64,8 +64,8 @@ class CropMove(Model):
 
         #Create Owner agents:
         for i in range(self.nowners):
-            x = random.randrange(20, self.width-20)
-            y = random.randrange(20, self.height-20)
+            x = random.randrange(20, self.height-20)
+            y = random.randrange(20, self.width-20)
             owner = i
             nplots = self.config[i,1]
             wealth = self.config[i,2]
@@ -115,8 +115,8 @@ class CropMove(Model):
         self.rentout = 0
         #every 2nd step add one migrant Owner
         if self.schedule.time%2==0:
-            x = random.randrange(self.width)
-            y = random.randrange(self.height)
+            x = random.randrange(self.height)
+            y = random.randrange(self.width)
             owner = len(self.schedule.agents_by_breed[Owner])+1
             nplots = 1
             hhsize = 6
