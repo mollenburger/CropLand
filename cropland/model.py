@@ -53,7 +53,7 @@ class CropMove(Model):
 
         # Create land
         land_suitability = np.genfromtxt("inputs/db_suitability.csv",delimiter=',')
-        land_feasibility = np.genfromtxt("inputs/db_feasibility.csv",delimiter=',')
+        land_feasibility = np.genfromtxt("inputs/db_feasibility_nop.csv",delimiter=',')
         for _, x, y in self.grid.coord_iter():
             suitability = land_suitability[x, y]
             feasibility = land_feasibility[x,y]
