@@ -194,7 +194,7 @@ class TreePlot(Plot):
 
 
 class Owner(Agent):
-    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, livpref=0.7, treepref=0.03, vision=10, tract=0, tractype='Unsubs40', rentin=0, rentout=0, minrent=0.3):
+    def __init__(self,pos,model, owner, wealth, hhsize, draft, livestock, expenses, trees, tract=0, livpref=0.7, treepref=0.03, vision=10, tractype='Unsubs40', rentin=0, rentout=0, minrent=0.3):
         super().__init__(pos, model)
         self.owner=owner
         self.wealth = wealth
@@ -205,7 +205,7 @@ class Owner(Agent):
         self.livpref=livpref
         self.treepref=treepref
         self.vision = vision
-        self.tract = 0
+        self.tract = tract
         self.tractype = tractype
         self.tractcost=self.model.tractcost.loc[tractype]
         self.rentin = rentin

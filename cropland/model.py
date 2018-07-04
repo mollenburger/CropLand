@@ -74,7 +74,8 @@ class CropMove(Model):
             livestock = self.config[i,5]
             expenses = self.config[i,6]
             trees = self.config[i,7]
-            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock,expenses,trees)
+            tract = self.config[i,8]
+            owneragent = Owner((x,y),self, owner, wealth, hhsize, draft, livestock,expenses,trees,tract)
             self.grid.place_agent(owneragent,(x,y))
             self.schedule.add(owneragent)
             for j in range(nplots):
@@ -110,7 +111,7 @@ class CropMove(Model):
         else:
             self.rentpct=self.rentin/self.rentout
         #reset rental capacity
-        self.rentcap = 0
+        self.rentcap = 1000
         self.rentin = 0
         self.rentout = 0
         #every 2nd step add one migrant Owner
