@@ -1,6 +1,6 @@
 #### Land suitability
 - Using Landsat images from October 2015, land was classified into cropland, savannah, and plateau. For this application, we do not differentiate between cropland and savannah, since all is cultivable. Plateau areas have shallow soils and are generally unsuitable for cultivation.
-- Using SRTM DEM, land was classified into three types, based on typical soil catenas in the area [cite/link]. If the slope was above 6% it was classified as "sloped." Flat land was classified "high" if it was above 380masl, and "low" otherwise.
+- Using SRTM DEM, land was classified into three types, based on typical soil catenas in the area [cite/link]. If the slope was above 3% it was classified as "sloped." Flat land was classified "high" if it was above 380masl, and "low" otherwise.
 - Land suitability impacts yield levels throughout the model as a correction factor to average yields at a given management level. These factors were estimated based on yield variability in survey and (maize) trial data.
 
 #### Cultivation history effects
